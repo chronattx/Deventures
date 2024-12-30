@@ -1,4 +1,4 @@
-from Data_types import Coord, Rect
+from data_types import Coord, Rect
 
 class BaseObject:
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
@@ -17,3 +17,4 @@ class BaseObject:
 
     def move(self, delta: Coord) -> None:
         pass
+
