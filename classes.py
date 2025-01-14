@@ -1,3 +1,5 @@
+import pygame
+
 from data_types import Coord, Rect
 import pygame
 
@@ -54,6 +56,18 @@ class BaseObject:
 
     def draw(self, screen):
         pygame.draw.rect(screen, (0, 240, 240), self.hitbox)
+        sprites = pygame.sprite.Group()
+        sprite = pygame.sprite.Sprite()
+
+        sprite.image = pygame.image.load(self.image_file)
+        sprite.rect = sprite.image.get_rect()
+        sprite.size = sprite.image.get_size()
+
+        sprite.rect.x = int(self.coords[0] - sprite.size[0] / 2)
+        sprite.rect.y = int(self.coords[1] - sprite.size[1] / 2)
+
+        sprites.add(sprite)
+        sprites.draw(screen)
 
     def update(self):
         pass
