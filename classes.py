@@ -4,7 +4,7 @@ from data_types import Coord, Rect
 
 
 class Weapon:
-    def __init__(self, damage: int, range: int, sprite: str, character):
+    def __init__(self, damage: int, range: int, sprite: str, character=None):
         self.damage = damage
         self.range = range # мб переименовать? всё-таки range - функция
         self.sprite = sprite
@@ -22,7 +22,6 @@ class Weapon:
 
     def update(self):
         if self.rotation:
-            self.hit()
             self.angle += 5
             if self.angle > 120:
                 self.rotation = False
@@ -34,11 +33,17 @@ class Weapon:
     def hit(self):
         if type(self.character) == Hero:
             for enemy in Objects.enemies:
-                if enemy.is_in_hitbox(self.character.coords + self.range):
-                    enemy.get_damage(self.damage)
+                x, y = self.character.weapon_coords()
+                for a in range(x - self.range, x + 1):
+                    if enemy.is_in_hitbox((a, y)):
+                        enemy.get_damage(self.damage)
+                        break
         else:
-            if Objects.hero.is_in_hitbox(self.character.coords + self.range):
-                Objects.hero.get_damage(self.damage)
+            x, y = self.character.weapon_coords()
+            for a in range(x - self.range, x + 1):
+                if Objects.hero.is_in_hitbox((a, y)):
+                    Objects.hero.get_damage(self.damage)
+                    break
 
 
 class BaseObject:
@@ -46,9 +51,11 @@ class BaseObject:
         self.hitbox = hitbox
         self.image_file = image_file
         self.coords = coords
+        self.sprite = pygame.image.load(self.image_file)
 
     def is_in_hitbox(self, coord: Coord) -> bool:
-        if self.hitbox[0] <= coord[0] <= self.hitbox[2] and self.hitbox[1] <= coord[1] <= self.hitbox[3]:
+        if (self.hitbox[0] <= coord[0] <= self.hitbox[2] + self.hitbox[0] and
+            self.hitbox[1] <= coord[1] <= self.hitbox[3] + self.hitbox[1]):
             return True
         return False
 
@@ -61,11 +68,10 @@ class BaseObject:
                        self.hitbox[2] + delta[0], self.hitbox[3] + delta[1])
 
     def draw(self, screen: pygame.surface.Surface):
-        pygame.draw.rect(screen, (0, 240, 240), self.hitbox)
         sprites = pygame.sprite.Group()
         sprite = pygame.sprite.Sprite()
 
-        sprite.image = pygame.image.load(self.image_file)
+        sprite.image = self.sprite
         sprite.rect = sprite.image.get_rect()
         sprite.size = sprite.image.get_size()
 
@@ -90,6 +96,7 @@ class BaseCharacter(BaseObject):
 
     def get_weapon(self, weapon: Weapon):
         self.weapon = weapon
+        self.weapon.character = self
 
     def attack(self):
         self.melee_active = True
@@ -107,7 +114,7 @@ class BaseCharacter(BaseObject):
         if self.weapon is not None:
             self.weapon.show(self.weapon_coords(), screen)
 
-    def weapon_coords(self):
+    def weapon_coords(self) -> Coord:
         return self.hitbox[0] - 5, (self.hitbox[1] + self.hitbox[3]) // 2
 
     def get_damage(self, damage: int):
@@ -123,7 +130,7 @@ class BaseCharacter(BaseObject):
         self.draw(screen)
 
     def die(self):
-        pass
+        pass # Objects.enemies.remove(self)
 
 
 class Hero(BaseCharacter):
@@ -131,5 +138,5 @@ class Hero(BaseCharacter):
 
 
 class Objects:
-    hero = None
-    enemies = []
+    hero: Hero = None
+    enemies: list = []
