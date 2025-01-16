@@ -1,18 +1,18 @@
 import pygame
 
 from data_types import Coord, Rect
-import pygame
 
 
 class Weapon:
-    def __init__(self, damage: int, range: int, sprite: str):
+    def __init__(self, damage: int, range: int, sprite: str, character=None):
         self.damage = damage
-        self.range = range
+        self.range = range # мб переименовать? всё-таки range - функция
         self.sprite = sprite
         self.angle = 0
         self.rotation = False
+        self.character = character
 
-    def show(self, coords: Coord, screen):
+    def show(self, coords: Coord, screen: pygame.surface.Surface):
         im = pygame.image.load(self.sprite)
 
         im = pygame.transform.rotate(im, self.angle)
@@ -22,7 +22,6 @@ class Weapon:
 
     def update(self):
         if self.rotation:
-            self.hit()
             self.angle += 5
             if self.angle > 120:
                 self.rotation = False
@@ -32,7 +31,19 @@ class Weapon:
         self.rotation = True
 
     def hit(self):
-        pass  # короче тут должна быть функция, которая смотрит, кто попадает под удар
+        if type(self.character) == Hero:
+            for enemy in Objects.enemies:
+                x, y = self.character.weapon_coords()
+                for a in range(x - self.range, x + 1):
+                    if enemy.is_in_hitbox((a, y)):
+                        enemy.get_damage(self.damage)
+                        break
+        else:
+            x, y = self.character.weapon_coords()
+            for a in range(x - self.range, x + 1):
+                if Objects.hero.is_in_hitbox((a, y)):
+                    Objects.hero.get_damage(self.damage)
+                    break
 
 
 class BaseObject:
@@ -40,9 +51,11 @@ class BaseObject:
         self.hitbox = hitbox
         self.image_file = image_file
         self.coords = coords
+        self.sprite = pygame.image.load(self.image_file)
 
     def is_in_hitbox(self, coord: Coord) -> bool:
-        if self.hitbox[0] <= coord[0] <= self.hitbox[2] and self.hitbox[1] <= coord[1] <= self.hitbox[3]:
+        if (self.hitbox[0] <= coord[0] <= self.hitbox[2] + self.hitbox[0] and
+            self.hitbox[1] <= coord[1] <= self.hitbox[3] + self.hitbox[1]):
             return True
         return False
 
@@ -50,16 +63,15 @@ class BaseObject:
         self.coords = self.coords[0] + delta[0], self.coords[1] + delta[1]
         self.update_hitbox(delta)
 
-    def update_hitbox(self, delta):
+    def update_hitbox(self, delta: Coord):
         self.hitbox = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1],
                        self.hitbox[2] + delta[0], self.hitbox[3] + delta[1])
 
-    def draw(self, screen):
-        pygame.draw.rect(screen, (0, 240, 240), self.hitbox)
+    def draw(self, screen: pygame.surface.Surface):
         sprites = pygame.sprite.Group()
         sprite = pygame.sprite.Sprite()
 
-        sprite.image = pygame.image.load(self.image_file)
+        sprite.image = self.sprite
         sprite.rect = sprite.image.get_rect()
         sprite.size = sprite.image.get_size()
 
@@ -69,7 +81,7 @@ class BaseObject:
         sprites.add(sprite)
         sprites.draw(screen)
 
-    def update(self):
+    def update(self, screen: pygame.surface.Surface):
         pass
 
 
@@ -84,6 +96,7 @@ class BaseCharacter(BaseObject):
 
     def get_weapon(self, weapon: Weapon):
         self.weapon = weapon
+        self.weapon.character = self
 
     def attack(self):
         self.melee_active = True
@@ -96,20 +109,20 @@ class BaseCharacter(BaseObject):
     def action(self):  # эта функция должна вызывать каждый цикл нужные методы типа move или attack
         pass
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.surface.Surface):
         super().draw(screen)
         if self.weapon is not None:
             self.weapon.show(self.weapon_coords(), screen)
 
-    def weapon_coords(self):
+    def weapon_coords(self) -> Coord:
         return self.hitbox[0] - 5, (self.hitbox[1] + self.hitbox[3]) // 2
 
     def get_damage(self, damage: int):
         if self.no_damage_time == 0:
             self.health -= damage
 
-    def update(self):
-        super().update()
+    def update(self, screen: pygame.surface.Surface):
+        super().update(screen)
         if self.no_damage_time:
             self.no_damage_time -= 1
         if self.health <= 0:
@@ -117,8 +130,25 @@ class BaseCharacter(BaseObject):
         self.draw(screen)
 
     def die(self):
-        pass
+        pass # Objects.enemies.remove(self)
 
 
 class Hero(BaseCharacter):
     pass
+
+
+class Enemy(BaseCharacter):
+    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int, strategy):
+        super().__init__(hitbox, image_file, coords, speed, health)
+        self.strategy = strategy
+
+    def mode1(self):
+        pass
+
+    def mode2(self):
+        pass
+
+
+class Objects:
+    hero: Hero = None
+    enemies: list = []
