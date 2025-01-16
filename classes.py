@@ -129,12 +129,21 @@ class BaseCharacter(BaseObject):
             self.die()
         self.draw(screen)
 
-    def die(self):
-        pass # Objects.enemies.remove(self)
-
 
 class Hero(BaseCharacter):
     pass
+
+
+class Enemy(BaseCharacter):
+    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int, strategy):
+        super().__init__(hitbox, image_file, coords, speed, health)
+        self.strategy = strategy
+
+    def mode1(self):
+        pass
+
+    def mode2(self):
+        pass
 
 
 class Objects:
