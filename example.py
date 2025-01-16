@@ -1,13 +1,18 @@
-from classes import Hero, Weapon
+from classes import Dialog, BaseCharacter
 import pygame
 
-weapon = Weapon(10, 58, 'assets\MainHeroSword.png')
-hero = Hero((100, 100, 20, 50), 'wwfw', (110, 110), 5, 50)
-hero.get_weapon(weapon)
+
 pygame.init()
 size = 500, 500
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
+dialog = Dialog()
+texts = ('hahahehe', 'hehehaha')
+now = 0
+dialog.text = 'hahahehe'
+dialog.title = 'haher'
+dialog.avatar_file = 'assets/haher.png'
+haher = BaseCharacter((100, 100, 164, 164), 'assets/minihaher.png', (132, 132), 0, 10)
 
 running = True
 while running:
@@ -15,11 +20,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            weapon.start_rotation()
+            now = (now + 1) % 2
+            dialog.text = texts[now]
 
     screen.fill(pygame.color.Color('WHITE'))
-    weapon.update()
-    hero.update()
+    dialog.draw(screen)
+    haher.draw(screen)
     pygame.display.flip()
 
     clock.tick(60)
