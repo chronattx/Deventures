@@ -146,6 +146,20 @@ class Enemy(BaseCharacter):
         pass
 
 
+class Peaceful(BaseCharacter):
+    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int):
+        super().__init__(hitbox, image_file, coords, speed, health)
+        self.dialogs = ['']
+        self.current = 0
+        self.avatar = 'assets/haher.png'
+
+    def current_dialog(self):
+        d = self.dialogs[self.current]
+        self.current += 1
+        self.current %= len(self.dialogs)
+        return d
+
+
 class Objects:
     hero: Hero = None
     enemies: list = []
