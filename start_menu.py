@@ -2,12 +2,13 @@ import pygame
 import time
 import pygame_light2d as pl2d
 from pygame_light2d import LightingEngine, PointLight
+from Level_0 import main
 
 
 pygame.init()
 
 # --- ИНИЦИАЛИЗАЦИЯ ---
-screen_res = (1280, 720)
+screen_res = (1080, 600)
 lights_engine = LightingEngine(
     screen_res=screen_res,
     native_res=screen_res,
@@ -20,7 +21,7 @@ clock = pygame.time.Clock()
 lights_engine.set_ambient(0, 0, 0, 128)
 
 # Загрузка фона
-tex_background = lights_engine.load_texture('assets/FON.jpg')
+tex_background = lights_engine.load_texture('assets/FON.png')
 
 # Создаём источник света
 light = PointLight(position=(100, 100), power=1.0, radius=600)
@@ -28,10 +29,11 @@ light.set_color(255, 255, 255, 255)
 lights_engine.lights.append(light)
 
 # --- ЗАГРУЗКА «КНОПКИ» КАК ГОТОВОГО PNG ---
-btn_texture = lights_engine.load_texture('assets/btn.png')
+btn_texture = lights_engine.load_texture('assets/startbtn.png')
 
 # Параметры кнопки
-button_w, button_h = 200, 70
+button_w, button_h = 600, 150
+
 
 # Вычисляем координаты, чтобы центрировать кнопку по окну 1280x720
 button_x = (screen_res[0] - button_w) // 2
@@ -49,7 +51,7 @@ while running:
             mx, my = event.pos
             # Проверяем попадание по кнопке
             if button_x <= mx <= button_x + button_w and button_y <= my <= button_y + button_h:
-                print("Кнопка нажата!")
+                main()
 
     # Двигаем фонарик за мышкой
     light.position = pygame.mouse.get_pos()
