@@ -129,9 +129,6 @@ class BaseCharacter(BaseObject):
             self.die()
         self.draw(screen)
 
-    def die(self):
-        pass # Objects.enemies.remove(self)
-
 
 class Hero(BaseCharacter):
     pass
