@@ -149,3 +149,21 @@ class Enemy(BaseCharacter):
 class Objects:
     hero: Hero = None
     enemies: list = []
+
+
+class Dialog:
+    def __init__(self):
+        self.text = ''
+        self.title = ''
+        self.avatar_file = 'assets\haher.png'
+
+    def draw(self, screen: pygame.surface.Surface):
+        pygame.draw.rect(screen, (200, 150, 0), (0, 350, 500, 200))
+        font = pygame.font.SysFont(None, 32)
+        img = font.render(self.title, True, (0, 0, 0))
+        screen.blit(img, (100, 370))
+        font = pygame.font.SysFont(None, 24)
+        img = font.render(self.text, True, (0, 0, 0))
+        screen.blit(img, (100, 410))
+        img = pygame.image.load(self.avatar_file)
+        screen.blit(img, (10, 370))
