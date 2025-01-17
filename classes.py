@@ -4,17 +4,16 @@ from data_types import Coord, Rect
 
 
 class Weapon:
-    def __init__(self, damage: int, range: int, sprite: str, character=None):
+    def __init__(self, damage: int, length: int, image_file: str, character=None):
         self.damage = damage
-        self.range = range # мб переименовать? всё-таки range - функция
-        self.sprite = sprite
+        self.length = length
+        self.image_file = image_file
+        self.character = character
         self.angle = 0
         self.rotation = False
-        self.character = character
 
     def show(self, coords: Coord, screen: pygame.surface.Surface):
-        im = pygame.image.load(self.sprite)
-
+        im = pygame.image.load(self.image_file)
         im = pygame.transform.rotate(im, self.angle)
         rect = im.get_rect()
         rect.center = (coords[0], coords[1] + 30)
@@ -34,13 +33,13 @@ class Weapon:
         if type(self.character) == Hero:
             for enemy in Objects.enemies:
                 x, y = self.character.weapon_coords()
-                for a in range(x - self.range, x + 1):
+                for a in range(x - self.length, x + 1):
                     if enemy.is_in_hitbox((a, y)):
                         enemy.get_damage(self.damage)
                         break
         else:
             x, y = self.character.weapon_coords()
-            for a in range(x - self.range, x + 1):
+            for a in range(x - self.length, x + 1):
                 if Objects.hero.is_in_hitbox((a, y)):
                     Objects.hero.get_damage(self.damage)
                     break
@@ -127,10 +126,6 @@ class BaseCharacter(BaseObject):
             self.no_damage_time -= 1
         if self.health <= 0:
             self.die()
-        self.draw(screen)
-
-    def die(self):
-        pass # Objects.enemies.remove(self)
 
 
 class Hero(BaseCharacter):
