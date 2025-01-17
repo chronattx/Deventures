@@ -1,9 +1,10 @@
+from Classes import *
 import pygame
 
 # Размеры экрана
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 # Размер игрока
-PLAYER_SIZE = 50
+PLAYER_SIZE = 5000
 
 
 # Камера для следования за игроком
@@ -31,40 +32,6 @@ class Camera:
         # Обновление позиции камеры
         self.camera = pygame.Rect(x, y, self.width, self.height)
 
-
-# Игрок
-class Player:
-    def __init__(self, x, y):
-        # Игрок представлен прямоугольником
-        self.rect = pygame.Rect(x, y, PLAYER_SIZE, PLAYER_SIZE)
-        self.color = (0, 0, 255)  # Синий цвет игрока
-        self.speed = 5  # Скорость движения
-
-    def move(self, keys, walls):
-        # Перемещение игрока
-        dx, dy = 0, 0
-        if keys[pygame.K_w]:  # Вверх
-            dy = -self.speed
-        if keys[pygame.K_s]:  # Вниз
-            dy = self.speed
-        if keys[pygame.K_a]:  # Влево
-            dx = -self.speed
-        if keys[pygame.K_d]:  # Вправо
-            dx = self.speed
-
-        # Проверка столкновений по оси X
-        self.rect.x += dx
-        if any(self.rect.colliderect(wall) for wall in walls):  # Столкновение с любой стеной
-            self.rect.x -= dx
-
-        # Проверка столкновений по оси Y
-        self.rect.y += dy
-        if any(self.rect.colliderect(wall) for wall in walls):
-            self.rect.y -= dy
-
-    def draw(self, screen, camera):
-        # Рисует игрока с учётом смещения камеры
-        pygame.draw.rect(screen, self.color, camera.apply(self.rect))
 
 
 # Комната
@@ -150,10 +117,23 @@ def create_rooms():
         pygame.Rect(1090, 0, 10, 450),
         pygame.Rect(1090, 550, 10, 500)
     ]
-    room4_transitions = [{"rect": pygame.Rect(1090, 450, 10, 100), "target": "room5", "player_start": (550, 500)},
+    room4_transitions = [{"rect": pygame.Rect(1090, 450, 10, 100), "target": "room5", "player_start": (30, 600)},
                          {"rect": pygame.Rect(500, 0, 100, 10), "target": "room3", "player_start": (500, 900)}
                          ]
     rooms["room4"] = Room(room4_width, room4_height, "assets/room4.png", room4_walls, room4_transitions)
+
+    # Комната 5
+    room5_width, room5_height = 2000, 1200
+    room5_walls = [
+        pygame.Rect(0, 0, 2000, 10),  # Верхняя стена вверх
+        pygame.Rect(0, 1190, 2000, 10),  # Нижняя стена
+        pygame.Rect(0, 0, 10, 550),
+        pygame.Rect(0, 650, 10, 550),
+        pygame.Rect(1990, 0, 10, 1200)
+    ]
+    room5_transitions = [{"rect": pygame.Rect(0, 550, 10, 100), "target": "room4", "player_start": (1000, 500)}
+                         ]
+    rooms["room5"] = Room(room5_width, room5_height, "assets/room5.png", room5_walls, room5_transitions)
     return rooms
 
 
@@ -164,7 +144,15 @@ def main():
     clock = pygame.time.Clock()
 
     # Инициализация игрока и комнат
-    player = Player(800, 400)
+    hero_hitbox = (70, 70, 0, 0)  # Устанавливаем новые размеры хитбокса
+    hero_image = "assets/FON.png"
+    hero_speed = 5
+    hero_health = 100
+    player = Hero(hero_hitbox, hero_image, (1200, 800), hero_speed, hero_health)
+
+    # Применяем изменение размера хитбокса (если необходимо)
+
+
     rooms = create_rooms()
     current_room = "room1"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
