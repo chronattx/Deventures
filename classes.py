@@ -1,5 +1,6 @@
 import pygame
 
+from typing import Callable
 from data_types import Coord, Rect
 
 
@@ -24,6 +25,7 @@ class Weapon:
             self.angle += 5
             if self.angle > 120:
                 self.rotation = False
+                self.hit()
                 self.angle = 0
 
     def start_rotation(self):
@@ -63,8 +65,7 @@ class BaseObject:
         self.update_hitbox(delta)
 
     def update_hitbox(self, delta: Coord):
-        self.hitbox = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1],
-                       self.hitbox[2] + delta[0], self.hitbox[3] + delta[1])
+        self.hitbox = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1], self.hitbox[2], self.hitbox[3])
 
     def draw(self, screen: pygame.surface.Surface):
         sprites = pygame.sprite.Group()
@@ -80,15 +81,12 @@ class BaseObject:
         sprites.add(sprite)
         sprites.draw(screen)
 
-    def update(self, screen: pygame.surface.Surface):
-        pass
-
 
 class BaseCharacter(BaseObject):
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int):
         super().__init__(hitbox, image_file, coords)
         self.speed = speed
-        self.health = health
+        self.health = self.max_health = health
         self.weapon = None
         self.melee_active = False
         self.no_damage_time = 0
@@ -101,6 +99,7 @@ class BaseCharacter(BaseObject):
         self.melee_active = True
         if self.weapon is not None:
             self.weapon.start_rotation()
+            self.weapon.update()
 
     def stop_attack(self):
         self.melee_active = False
@@ -114,34 +113,52 @@ class BaseCharacter(BaseObject):
             self.weapon.show(self.weapon_coords(), screen)
 
     def weapon_coords(self) -> Coord:
-        return self.hitbox[0] - 5, (self.hitbox[1] + self.hitbox[3]) // 2
+        return self.hitbox[0] + 5, self.hitbox[1]
 
     def get_damage(self, damage: int):
         if self.no_damage_time == 0:
             self.health -= damage
 
-    def update(self, screen: pygame.surface.Surface):
-        super().update(screen)
-        if self.no_damage_time:
-            self.no_damage_time -= 1
-        if self.health <= 0:
-            self.die()
-
 
 class Hero(BaseCharacter):
-    pass
+    def update(self, screen: pygame.surface.Surface):
+        if self.health <= 0:
+            self.die()
+        else:
+            self.draw(screen)
+
+    def die(self):
+        Objects.hero = None
 
 
 class Enemy(BaseCharacter):
-    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int, strategy):
+    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int, strategy: Callable):
         super().__init__(hitbox, image_file, coords, speed, health)
         self.strategy = strategy
 
-    def mode1(self):
+    def update(self, screen: pygame.surface.Surface, *args, **kwargs):
+        if self.health <= 0:
+            self.die()
+        else:
+            mode = self.strategy(self, *args, **kwargs)
+            mode()
+            self.draw(screen)
+
+    def go_to_hero(self):
+        x1, y1 = self.coords
+        x2, y2 = Objects.hero.coords
+        k = self.speed / ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+        distance = (int(k * (x2 - x1)), int(k * (y2 - y1)))
+        self.move(distance)
+
+    def run_away(self):
         pass
 
-    def mode2(self):
+    def wait(self):
         pass
+
+    def die(self):
+        Objects.enemies.remove(self)
 
 
 class Peaceful(BaseCharacter):
@@ -160,7 +177,9 @@ class Peaceful(BaseCharacter):
 
 class Objects:
     hero: Hero = None
-    enemies: list = []
+    enemies: list[Enemy] = []
+    peaceful: list[Peaceful] = []
+    universal_weapons: dict[str, Weapon] = {}
 
 
 class Dialog:

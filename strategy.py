@@ -1,7 +1,15 @@
 from classes import Enemy, Objects
 
 
-def example_strategy(enemy: Enemy, objects: Objects):
-    if -5 < enemy.coords[0] - objects.hero.coords[0] < 5:
-        return enemy.mode1
-    return enemy.mode2
+def example_strategy(enemy: Enemy):
+    x, y = enemy.weapon_coords()
+    length = enemy.weapon.length
+
+    if enemy.health / enemy.max_health * 100 < 30:
+        return enemy.run_away
+    elif Objects.hero is None:
+        return enemy.wait
+    elif Objects.hero.is_in_hitbox((x - length, y)):
+        return enemy.attack
+    else:
+        return enemy.go_to_hero
