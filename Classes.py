@@ -157,70 +157,56 @@ class BaseCharacter(BaseObject):
 
 class Hero(BaseCharacter):
     def __init__(self, hitbox, image_file, coords, speed, health):
-        # Извлекаем значения для размера изображения и хитбокса
-        image_width, image_height = hitbox[0], hitbox[1]  # Первые два значения для размера изображения
-        hitbox_width, hitbox_height = hitbox[2], hitbox[3]  # Вторые два значения для размера хитбокса
+        image_width, image_height = hitbox[0], hitbox[1]
+        hitbox_width, hitbox_height = hitbox[2], hitbox[3]
 
-        # Если размеры хитбокса не заданы (0), мы делаем их такими же, как и для изображения
+
         if hitbox_width == 0 or hitbox_height == 0:
             hitbox_width, hitbox_height = image_width, image_height
 
-        # Параметры передаются в конструктор родительского класса
         super().__init__((hitbox_width, hitbox_height, hitbox_width, hitbox_height), image_file, coords, speed, health)
 
-        self.image = pygame.image.load(image_file)  # Загружаем изображение
-        self.rect = self.image.get_rect(topleft=coords)  # Устанавливаем позицию
-        self.rect.center = coords  # Центрируем изображение относительно координат
+        self.image = pygame.image.load(image_file)
+        self.rect = self.image.get_rect(topleft=coords)
+        self.rect.center = coords
 
-        # Масштабируем изображение в соответствии с переданными размерами
         self.resize_image(image_width, image_height)
-
-        # Применяем размеры хитбокса
         self.resize_hitbox(hitbox_width, hitbox_height)
 
     def move(self, keys, walls):
-        # Перемещение игрока
+
         dx, dy = 0, 0
-        if keys[pygame.K_w]:  # Вверх
+        if keys[pygame.K_w]:
             dy = -self.speed
-        if keys[pygame.K_s]:  # Вниз
+        if keys[pygame.K_s]:
             dy = self.speed
-        if keys[pygame.K_a]:  # Влево
+        if keys[pygame.K_a]:
             dx = -self.speed
-        if keys[pygame.K_d]:  # Вправо
+        if keys[pygame.K_d]:
             dx = self.speed
 
-        # Проверка столкновений по оси X
         self.rect.x += dx
-        if any(self.rect.colliderect(wall) for wall in walls):  # Столкновение с любой стеной
+        if any(self.rect.colliderect(wall) for wall in walls):
             self.rect.x -= dx
 
-        # Проверка столкновений по оси Y
         self.rect.y += dy
         if any(self.rect.colliderect(wall) for wall in walls):
             self.rect.y -= dy
 
     def draw(self, screen, camera):
-        # Рисует игрока с учётом смещения камеры
         screen.blit(self.image, camera.apply(self.rect))
-        # Рисует хитбокс игрока (красный контур)
         pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
 
     def resize_image(self, new_width, new_height):
-        # Масштабирует изображение игрока
         self.image = pygame.transform.scale(self.image, (new_width, new_height))
-
-        # Обновляем прямоугольник изображения в соответствии с новыми размерами
         self.rect.width = new_width
         self.rect.height = new_height
 
     def resize_hitbox(self, new_width, new_height):
-        # Изменяет размер хитбокса и центрирует его
         self.rect.width = new_width
         self.rect.height = new_height
 
-        # Центрируем изображение внутри нового хитбокса
-        self.rect.center = (self.rect.centerx, self.rect.centery)  # Центрируем изображение внутри хитбокса
+        self.rect.center = (self.rect.centerx, self.rect.centery)
 
 
 class Enemy(BaseCharacter):
