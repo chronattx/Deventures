@@ -3,8 +3,6 @@ import pygame
 
 # Размеры экрана
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
-# Размер игрока
-PLAYER_SIZE = 5000
 
 
 # Камера для следования за игроком
@@ -55,6 +53,52 @@ class Room:
         # Отображение зон переходов (красные прямоугольники)
         for transition in self.transitions:
             pygame.draw.rect(screen, (255, 0, 0), camera.apply(transition["rect"]), 2)
+
+
+class NPC:
+    def __init__(self, x, y, image_path):
+        self.rect = pygame.Rect(x, y, 200, 200)
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (200, 200))
+        self.following = False
+
+    def draw(self, screen, camera):
+        screen.blit(self.image, camera.apply(self.rect))
+
+    def check_click(self, mouse_pos, camera):
+        return camera.apply(self.rect).collidepoint(mouse_pos)
+
+
+class DialogBox:
+    def __init__(self, text):
+        self.text = text
+        self.visible = False
+        self.font = pygame.font.Font(None, 36)
+        self.button_font = pygame.font.Font(None, 28)
+        self.yes_button = pygame.Rect(300, 500, 100, 40)
+        self.no_button = pygame.Rect(450, 500, 100, 40)
+
+    def draw(self, screen):
+        if self.visible:
+            pygame.draw.rect(screen, (200, 200, 200), (200, 400, 600, 200))
+            text_surface = self.font.render(self.text, True, (0, 0, 0))
+            screen.blit(text_surface, (220, 420))
+            pygame.draw.rect(screen, (0, 255, 0), self.yes_button)
+            pygame.draw.rect(screen, (255, 0, 0), self.no_button)
+            yes_text = self.button_font.render("Да", True, (0, 0, 0))
+            no_text = self.button_font.render("Нет", True, (0, 0, 0))
+            screen.blit(yes_text, (self.yes_button.x + 30, self.yes_button.y + 10))
+            screen.blit(no_text, (self.no_button.x + 30, self.no_button.y + 10))
+
+    def handle_click(self, mouse_pos):
+        if self.visible:
+            if self.yes_button.collidepoint(mouse_pos):
+                self.visible = False
+                return "yes"
+            elif self.no_button.collidepoint(mouse_pos):
+                self.visible = False
+                return "no"
+        return None
 
 
 # Функция создания комнат
@@ -144,18 +188,19 @@ def main():
     clock = pygame.time.Clock()
 
     # Инициализация игрока и комнат
-    hero_hitbox = (70, 70, 0, 0)  # Устанавливаем новые размеры хитбокса
+    hero_hitbox = (70, 70, 0, 0)
     hero_image = "assets/FON.png"
     hero_speed = 5
     hero_health = 100
     player = Hero(hero_hitbox, hero_image, (1200, 800), hero_speed, hero_health)
 
-    # Применяем изменение размера хитбокса (если необходимо)
-
-
     rooms = create_rooms()
     current_room = "room1"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
+
+    # Создаем НПС
+    npc = NPC(800, 400, "assets/walk1.png")  # Укажи путь к изображению НПС
+    dialog_box = DialogBox("Ты поможешь мне?")
 
     running = True
     while running:
@@ -163,31 +208,47 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                # Проверяем, кликнули ли по НПС
+                if npc.check_click(mouse_pos, camera):
+                    dialog_box.visible = True
+                # Обрабатываем клик по кнопкам диалогового окна
+                result = dialog_box.handle_click(mouse_pos)
+                if result == "yes":
+                    npc.following = True  # НПС начинает следовать за игроком
+                elif result == "no":
+                    pass  # Ничего не происходит
 
         # Движение игрока
         player.move(keys, rooms[current_room].walls)
+
+        # Если НПС следует за игроком
+        if npc.following:
+            npc.rect.center = player.rect.center  # НПС движется к игроку
 
         # Проверка переходов между комнатами
         for transition in rooms[current_room].transitions:
             if transition["rect"].colliderect(player.rect):
                 current_room = transition["target"]
-                player.rect.topleft = transition["player_start"]  # Перемещение игрока в новую комнату
-                camera = Camera(rooms[current_room].width, rooms[current_room].height)  # Обновление камеры
+                player.rect.topleft = transition["player_start"]
+                camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 
         # Обновление камеры
         camera.update(player)
 
         # Отрисовка
-        screen.fill((0, 0, 0))  # Очистка экрана
+        screen.fill((0, 0, 0))
         rooms[current_room].draw(screen, camera)
         player.draw(screen, camera)
+        npc.draw(screen, camera)  # Отрисовка НПС
+        dialog_box.draw(screen)   # Отрисовка диалогового окна
 
         pygame.display.flip()
-        clock.tick(60)  # Ограничение FPS
+        clock.tick(60)
 
     pygame.quit()
-
 
 if __name__ == "__main__":
     main()
