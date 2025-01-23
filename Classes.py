@@ -146,7 +146,7 @@ class BaseCharacter(BaseObject):
         if self.no_damage_time == 0:
             self.health -= damage
 
-    def update(self, screen: pygame.surface.Surface):
+    def update(self, screen: pygame.surface.Surface, *args, **kwargs):
         super().update(screen)
         if self.no_damage_time:
             self.no_damage_time -= 1
