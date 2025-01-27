@@ -3,6 +3,9 @@ import pygame
 from data_types import Coord, Rect
 
 
+SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
+
+
 class Weapon:
     def __init__(self, damage: int, range: int, sprite: str, character=None):
         self.damage = damage
@@ -254,3 +257,96 @@ class Dialog:
         screen.blit(img, (100, 410))
         img = pygame.image.load(self.avatar_file)
         screen.blit(img, (10, 370))
+
+class Camera:
+    def __init__(self, width, height):
+        self.camera = pygame.Rect(0, 0, width, height)  # Прямоугольник, определяющий видимую область
+        self.width = width
+        self.height = height
+
+    def apply(self, rect):
+        # Смещает переданный прямоугольник в соответствии с положением камеры
+        return rect.move(self.camera.topleft)
+
+    def update(self, target):
+        # Центрирует камеру на игроке
+        x = -target.rect.centerx + SCREEN_WIDTH // 2
+        y = -target.rect.centery + SCREEN_HEIGHT // 2
+
+        # Ограничение камеры в пределах уровня
+        x = min(0, x)  # Ограничение слева
+        y = min(0, y)  # Ограничение сверху
+        x = max(-(self.width - SCREEN_WIDTH), x)  # Ограничение справа
+        y = max(-(self.height - SCREEN_HEIGHT), y)  # Ограничение снизу
+
+        # Обновление позиции камеры
+        self.camera = pygame.Rect(x, y, self.width, self.height)
+
+
+# Комната
+class Room:
+    def __init__(self, width, height, image_path, walls, transitions):
+        self.width = width
+        self.height = height
+        self.image = pygame.image.load(image_path).convert()  # Фон комнаты
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))  # Масштабирование
+        self.walls = walls  # Список стен
+        self.transitions = transitions  # Список переходов в другие комнаты
+
+    def draw(self, screen, camera):
+        # Отображение фона
+        screen.blit(self.image, camera.apply(pygame.Rect(0, 0, self.width, self.height)))
+
+        # Отображение стен (зелёные прямоугольники)
+        for wall in self.walls:
+            pygame.draw.rect(screen, (0, 255, 0), camera.apply(wall))
+
+        # Отображение зон переходов (красные прямоугольники)
+        for transition in self.transitions:
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(transition["rect"]), 2)
+
+
+class NPC:
+    def __init__(self, x, y, image_path):
+        self.rect = pygame.Rect(x, y, 200, 200)
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (200, 200))
+        self.following = False
+
+    def draw(self, screen, camera):
+        screen.blit(self.image, camera.apply(self.rect))
+
+    def check_click(self, mouse_pos, camera):
+        return camera.apply(self.rect).collidepoint(mouse_pos)
+
+
+class DialogBox:
+    def __init__(self, text):
+        self.text = text
+        self.visible = False
+        self.font = pygame.font.Font(None, 36)
+        self.button_font = pygame.font.Font(None, 28)
+        self.yes_button = pygame.Rect(300, 500, 100, 40)
+        self.no_button = pygame.Rect(450, 500, 100, 40)
+
+    def draw(self, screen):
+        if self.visible:
+            pygame.draw.rect(screen, (200, 200, 200), (200, 400, 600, 200))
+            text_surface = self.font.render(self.text, True, (0, 0, 0))
+            screen.blit(text_surface, (220, 420))
+            pygame.draw.rect(screen, (0, 255, 0), self.yes_button)
+            pygame.draw.rect(screen, (255, 0, 0), self.no_button)
+            yes_text = self.button_font.render("Да", True, (0, 0, 0))
+            no_text = self.button_font.render("Нет", True, (0, 0, 0))
+            screen.blit(yes_text, (self.yes_button.x + 30, self.yes_button.y + 10))
+            screen.blit(no_text, (self.no_button.x + 30, self.no_button.y + 10))
+
+    def handle_click(self, mouse_pos):
+        if self.visible:
+            if self.yes_button.collidepoint(mouse_pos):
+                self.visible = False
+                return "yes"
+            elif self.no_button.collidepoint(mouse_pos):
+                self.visible = False
+                return "no"
+        return None
