@@ -158,10 +158,10 @@ class BaseCharacter(BaseObject):
 class Hero(BaseCharacter):
     def __init__(self, hitbox, image_file, coords, speed, health):
         image_width, image_height = hitbox[0], hitbox[1]
-        hitbox_width, hitbox_height = hitbox[2], hitbox[3]
-
+        hitbox_width, hitbox_height = hitbox[2], hitbox[3]   
 
         if hitbox_width == 0 or hitbox_height == 0:
+
             hitbox_width, hitbox_height = image_width, image_height
 
         super().__init__((hitbox_width, hitbox_height, hitbox_width, hitbox_height), image_file, coords, speed, health)
@@ -214,11 +214,9 @@ class Enemy(BaseCharacter):
         super().__init__(hitbox, image_file, coords, speed, health)
         self.strategy = strategy
 
-    def mode1(self):
-        pass
-
-    def mode2(self):
-        pass
+    def attack(self):
+        if Objects.hero:
+            Objects.hero.get_damage(10)
 
 
 class Peaceful(BaseCharacter):

@@ -1,4 +1,4 @@
-from Classes import *
+from classes import *
 import pygame
 
 # Размеры экрана
@@ -189,10 +189,10 @@ def main():
 
     # Инициализация игрока и комнат
     hero_hitbox = (70, 70, 0, 0)
-    hero_image = "assets/FON.png"
+    hero_image = "assets/Cura1.png"
     hero_speed = 5
     hero_health = 100
-    player = Hero(hero_hitbox, hero_image, (1200, 800), hero_speed, hero_health)
+    player = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health)
 
     rooms = create_rooms()
     current_room = "room1"
