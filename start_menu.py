@@ -8,6 +8,7 @@ from Level_0 import main
 
 
 # --- ИНИЦИАЛИЗАЦИЯ ---
+pygame.init()
 screen_res = (1080, 600)
 lights_engine = LightingEngine(
     screen_res=screen_res,

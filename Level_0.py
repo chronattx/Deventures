@@ -1,4 +1,5 @@
 from classes import *
+from animate_func import load_animation_frames
 import pygame
 
 
@@ -17,12 +18,20 @@ def create_rooms():
         pygame.Rect(0, 790, 1600, 10),  # Нижняя стена
         pygame.Rect(0, 0, 10, 350),  # Левая верхняя стена
         pygame.Rect(0, 450, 10, 350),  # Левая нижняя стена
-        pygame.Rect(1590, 0, 10, 800),  # Правая стена
+        pygame.Rect(1590, 0, 10, 800)  # Правая стена
     ]
     room1_transitions = [
         {"rect": pygame.Rect(0, 350, 10, 100), "target": "room2", "player_start": (600, 400)}
     ]
-    rooms["room1"] = Room(room1_width, room1_height, "assets/room1.png", room1_walls, room1_transitions)
+    room1_objects = [
+        GameObject('assets/decoration/Table.png', 800, 400)
+
+    ]
+    room1_npc = [
+        NPC(800, 400, "assets/NPC_files/walk1.png")
+    ]
+    room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
+    rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls, room1_transitions, room1_objects, room1_npc, room1_dialog)
 
     # Комната 2
     room2_width, room2_height = 800, 800
@@ -38,7 +47,7 @@ def create_rooms():
         {"rect": pygame.Rect(790, 350, 10, 100), "target": "room1", "player_start": (50, 400)},  # Вход из комнаты 1
         {"rect": pygame.Rect(350, 790, 100, 10), "target": "room3", "player_start": (500, 50)},  # Выход вниз
     ]
-    rooms["room2"] = Room(room2_width, room2_height, "assets/room2.png", room2_walls, room2_transitions)
+    rooms["room2"] = Room(room2_width, room2_height, "assets/rooms/room2.png", room2_walls, room2_transitions)
 
     # Комната 3
     room3_width, room3_height = 1000, 1000
@@ -54,7 +63,7 @@ def create_rooms():
         {"rect": pygame.Rect(450, 0, 100, 10), "target": "room2", "player_start": (400, 700)}, # Вход сверху
         {"rect": pygame.Rect(450, 990, 100, 10), "target": "room4", "player_start": (550, 20)}  # Вход снизу
     ]
-    rooms["room3"] = Room(room3_width, room3_height, "assets/room3.png", room3_walls, room3_transitions)
+    rooms["room3"] = Room(room3_width, room3_height, "assets/rooms/room3.png", room3_walls, room3_transitions)
 
     # Комната 4
     room4_width, room4_height = 1100, 1000
@@ -69,7 +78,7 @@ def create_rooms():
     room4_transitions = [{"rect": pygame.Rect(1090, 450, 10, 100), "target": "room5", "player_start": (30, 600)},
                          {"rect": pygame.Rect(500, 0, 100, 10), "target": "room3", "player_start": (500, 900)}
                          ]
-    rooms["room4"] = Room(room4_width, room4_height, "assets/room4.png", room4_walls, room4_transitions)
+    rooms["room4"] = Room(room4_width, room4_height, "assets/rooms/room4.png", room4_walls, room4_transitions)
 
     # Комната 5
     room5_width, room5_height = 2000, 1200
@@ -78,11 +87,12 @@ def create_rooms():
         pygame.Rect(0, 1190, 2000, 10),  # Нижняя стена
         pygame.Rect(0, 0, 10, 550),
         pygame.Rect(0, 650, 10, 550),
-        pygame.Rect(1990, 0, 10, 1200)
+        pygame.Rect(1990, 0, 10, 1200),
+        ((0, 790), (1600, 790))
     ]
     room5_transitions = [{"rect": pygame.Rect(0, 550, 10, 100), "target": "room4", "player_start": (1000, 500)}
                          ]
-    rooms["room5"] = Room(room5_width, room5_height, "assets/room5.png", room5_walls, room5_transitions)
+    rooms["room5"] = Room(room5_width, room5_height, "assets/rooms/room5.png", room5_walls, room5_transitions)
     return rooms
 
 
@@ -93,22 +103,30 @@ def main():
     clock = pygame.time.Clock()
 
     # Инициализация игрока и комнат
+    idle_frames = load_animation_frames("assets/animate_hero", 11)  # 3 кадра для idle
+    run_frames = load_animation_frames("assets/animate_hero", 1)  # 4 кадра для run
+
+    animations = {
+        "idle": idle_frames,
+        "run": run_frames,
+    }
     hero_hitbox = (70, 70, 0, 0)
-    hero_image = "assets/Cura1.png"
-    hero_speed = 5
+    hero_image = "assets/animate_hero/MairouMotion1.png"
+    hero_speed = 1
     hero_health = 100
-    player = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health)
+    player = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
 
     rooms = create_rooms()
     current_room = "room1"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     # Создаем НПС
-    npc = NPC(800, 400, "assets/walk1.png")  # Укажи путь к изображению НПС
-    dialog_box = DialogBox("Ты поможешь мне?")
+    dialog_box = DialogBox(rooms[current_room].text)
 
     running = True
     while running:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        pygame.display.set_caption(f"Координаты мыши: {mouse_x}, {mouse_y}")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -116,21 +134,21 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 # Проверяем, кликнули ли по НПС
-                if npc.check_click(mouse_pos, camera):
-                    dialog_box.visible = True
-                # Обрабатываем клик по кнопкам диалогового окна
-                result = dialog_box.handle_click(mouse_pos)
-                if result == "yes":
-                    npc.following = True  # НПС начинает следовать за игроком
-                elif result == "no":
-                    pass  # Ничего не происходит
+                for npc in rooms[current_room].npc:
+                    if npc.check_click(mouse_pos, camera):
+                        dialog_box.visible = True
+                        break
+                    result = dialog_box.handle_click(mouse_pos)
+                    if current_room == "room1" and result == 'yes':
+                        npc.following = True
 
         # Движение игрока
-        player.move(keys, rooms[current_room].walls)
+        player.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
 
         # Если НПС следует за игроком
-        if npc.following:
-            npc.rect.center = player.rect.center  # НПС движется к игроку
+        for npcs in rooms[current_room].npc:
+            if npcs.following:
+                npcs.rect.center = player.rect.center
 
         # Проверка переходов между комнатами
         for transition in rooms[current_room].transitions:
@@ -147,7 +165,8 @@ def main():
         screen.fill((0, 0, 0))
         rooms[current_room].draw(screen, camera)
         player.draw(screen, camera)
-        npc.draw(screen, camera)  # Отрисовка НПС
+        for npcs in rooms[current_room].npc:
+            npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
 
         pygame.display.flip()
