@@ -134,7 +134,7 @@ class Hero(BaseCharacter):
         :param coords: Начальные координаты персонажа.
         :param speed: Скорость персонажа.
         :param health: Здоровье персонажа.
-        :param animations: Словарь с анимациями. Ключи: "idle", "run". Значения: списки кадров (pygame.Surface).
+        :param animations: Словарь с анимациями. Ключи: "idle", "run". Значения: списки кадров (pygame. Surface).
         """
         image_width, image_height = hitbox[0], hitbox[1]
         hitbox_width, hitbox_height = hitbox[2], hitbox[3]
