@@ -1,5 +1,6 @@
 from classes import *
 from animate_func import load_animation_frames
+from Level0_minigame1 import minigame_main
 import pygame
 
 
@@ -24,7 +25,7 @@ def create_rooms():
         {"rect": pygame.Rect(0, 350, 10, 100), "target": "room2", "player_start": (600, 400)}
     ]
     room1_objects = [
-        GameObject('assets/decoration/Table.png', 800, 400)
+        GameObject('assets/decoration/Table.png', 800, 300)
 
     ]
     room1_npc = [
@@ -124,13 +125,30 @@ def main():
     dialog_box = DialogBox(rooms[current_room].text)
 
     running = True
+    cooldown_font = pygame.font.Font(None, 32)
+
     while running:
+        # Обновление перезарядки
+        delta_time = clock.get_time()
+        player.update_cooldowns(delta_time)
+
+        screen.fill((0, 0, 0))
+
+        # Отрисовка интерфейса
+
         mouse_x, mouse_y = pygame.mouse.get_pos()
         pygame.display.set_caption(f"Координаты мыши: {mouse_x}, {mouse_y}")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                # Рывок по Alt
+                if event.key in (pygame.K_LALT, pygame.K_RALT):
+                    # Проверяем возможность рывка
+                    if player.dash_cooldown <= 0:
+                        player.dash(rooms[current_room].walls, rooms[current_room].objects)
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 # Проверяем, кликнули ли по НПС
@@ -141,6 +159,10 @@ def main():
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and result == 'yes':
                         npc.following = True
+                    if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
+                        game_result = minigame_main()
+                        if game_result:
+                            pass
 
         # Движение игрока
         player.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
@@ -168,6 +190,16 @@ def main():
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
+
+        if player.dash_cooldown > 0:
+            cooldown_seconds = max(0, int(player.dash_cooldown // 1000))
+            cooldown_text = cooldown_font.render(
+                f"Рывок доступен через: {cooldown_seconds} сек",
+                True,
+                (255, 0, 0)
+            )
+            # Позиционируем текст в верхнем левом углу
+            screen.blit(cooldown_text, (10, 10))
 
         pygame.display.flip()
         clock.tick(60)

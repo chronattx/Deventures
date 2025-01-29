@@ -8,11 +8,13 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 class GameObject:
     def __init__(self, image_path, x, y):
-        self.image = pygame.image.load(image_path)
+        self.image_path = image_path  # Сохраняем путь к изображению
+        self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
+
 
 
 class Weapon:
@@ -145,6 +147,10 @@ class Hero(BaseCharacter):
         super().__init__((hitbox_width, hitbox_height, hitbox_width, hitbox_height), image_file, coords, speed, health)
 
         # Статическое изображение для состояния "idle"
+
+        self.last_dx = 0  # Последнее направление по X
+        self.last_dy = 0  # Последнее направление по Y
+
         self.original_image = pygame.image.load(image_file)
         self.image = self.original_image
         self.rect = self.image.get_rect(topleft=coords)
@@ -159,6 +165,11 @@ class Hero(BaseCharacter):
 
         self.resize_image(image_width, image_height)
         self.resize_hitbox(hitbox_width, hitbox_height)
+        self.dash_history = []  # Временные метки последних рывков
+        self.dash_cooldown = 0  # Оставшееся время перезарядки
+        self.max_dashes = 2  # Максимум рывков за период
+        self.dash_window = 3000  # 3 секунды в миллисекундах
+        self.cooldown_duration = 10000  # 10 секунд
 
     def move(self, keys, walls: List[Rect], objects: List[Rect], delta_time):
         dx, dy = 0, 0
@@ -219,6 +230,65 @@ class Hero(BaseCharacter):
 
         self.coords = self.rect.center
         self.update_animation(delta_time)
+        self.last_dx = dx
+        self.last_dy = dy
+
+    def dash(self, walls, objects):
+        """Рывок с проверкой ограничений"""
+        if self.dash_cooldown > 0:
+            return  # Рывок на перезарядке
+
+        current_time = pygame.time.get_ticks()
+
+        # Удаляем старые рывки из истории
+        self.dash_history = [t for t in self.dash_history
+                             if current_time - t < self.dash_window]
+
+        if len(self.dash_history) >= self.max_dashes:
+            # Активируем перезарядку
+            self.dash_cooldown = self.cooldown_duration
+            self.dash_history = []
+            return
+
+        # Выполняем рывок
+        if self.last_dx == 0 and self.last_dy == 0:
+            return
+
+        # Рассчитываем вектор направления
+        length = (self.last_dx ** 2 + self.last_dy ** 2) ** 0.5
+        dir_x = self.last_dx / length
+        dir_y = self.last_dy / length
+
+        # Вычисляем смещение
+        dash_x = int(dir_x * 50)
+        dash_y = int(dir_y * 25)
+
+        # Сохраняем исходную позицию
+        original = self.rect.topleft
+
+        # Применяем смещение
+        self.rect.move_ip(dash_x, dash_y)
+        self.dash_history.append(current_time)
+
+        # Проверяем коллизии
+        if self.check_collisions(walls, objects):
+            self.rect.topleft = original  # Откат при столкновении
+
+    def update_cooldowns(self, delta_time):
+        """Обновление таймеров перезарядки"""
+        if self.dash_cooldown > 0:
+            self.dash_cooldown -= delta_time
+
+
+    def check_collisions(self, walls, objects):
+        """Проверка коллизий с окружением"""
+        for wall in walls:
+            if self.rect.colliderect(wall):
+                return True
+        for obj in objects:
+            if self.rect.colliderect(obj):
+                return True
+        return False
 
     def update_animation(self, delta_time):
         """Обновляет текущий кадр анимации."""
@@ -378,6 +448,16 @@ class Room:
 
         for npc in self.npc:
             npc.draw(screen, camera)
+
+    def check_object_click(self, mouse_pos, camera, target_object="Table.png"):
+        """ Проверяет, кликнули ли по объекту с заданным изображением, учитывая смещение камеры. """
+        adjusted_mouse_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+
+        for obj in self.objects:
+            if obj.rect.collidepoint(adjusted_mouse_pos):
+                if obj.image_path.endswith(target_object):
+                    return True
+        return False
 
 
 class NPC:

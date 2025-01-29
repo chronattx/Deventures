@@ -30,7 +30,7 @@ light.set_color(255, 255, 255, 255)
 lights_engine.lights.append(light)
 
 # --- ЗАГРУЗКА «КНОПКИ» КАК ГОТОВОГО PNG ---
-btn_texture = lights_engine.load_texture('assets/startbtn.png')
+btn_texture = lights_engine.load_texture('assets/buttons/startbtn.png')
 
 # Параметры кнопки
 button_w, button_h = 600, 150
