@@ -1,4 +1,5 @@
 import pygame
+from typing import Callable
 from data_types import Coord, Rect
 
 
@@ -170,7 +171,7 @@ class Hero(BaseCharacter):
         self.dash_window = 3000  # 3 секунды в миллисекундах
         self.cooldown_duration = 10000  # 10 секунд
 
-    def move(self, keys, walls: List[Rect], objects: List[Rect], delta_time):
+    def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
 
         # Обработка нажатий клавиш
