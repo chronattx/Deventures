@@ -137,13 +137,13 @@ class Hero(BaseCharacter):
         :param health: Здоровье персонажа.
         :param animations: Словарь с анимациями. Ключи: "idle", "run". Значения: списки кадров (pygame. Surface).
         """
-        image_width, image_height = hitbox[0], hitbox[1]
+        hitbox_x, hitbox_y = hitbox[0], hitbox[1]
         hitbox_width, hitbox_height = hitbox[2], hitbox[3]
 
         #if hitbox_width == 0 or hitbox_height == 0:
         #    hitbox_width, hitbox_height = image_width, image_height
 
-        super().__init__((hitbox_width, hitbox_height, hitbox_width, hitbox_height), image_file, coords, speed, health)
+        super().__init__((hitbox_x, hitbox_y, hitbox_width, hitbox_height), image_file, coords, speed, health)
 
         # Статическое изображение для состояния "idle"
 
@@ -319,8 +319,6 @@ class Hero(BaseCharacter):
             pygame.draw.rect(screen, (255, 0, 0), camera.apply(hit_rect), 2)
         else:
             screen.blit(self.image, self.rect)
-            hit_rect = self.image.get_rect(topleft=(self.hitbox[0], self.hitbox[1]))
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(hit_rect), 2)
 
     def resize_image(self, new_width, new_height):
         for key in self.animations:
