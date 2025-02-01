@@ -113,7 +113,7 @@ def main():
         "idle": idle_frames,
         "run": run_frames,
     }
-    hero_hitbox = (600, 400, 0, 0)
+    hero_hitbox = (600, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
     hero_health = 100
@@ -149,7 +149,7 @@ def main():
         # Отрисовка интерфейса
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        pygame.display.set_caption(f"Координаты мыши: {mouse_x}, {mouse_y}")
+        pygame.display.set_caption("GoodGame")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -194,6 +194,8 @@ def main():
             if transition["rect"].colliderect(Objects.hero.rect):
                 current_room = transition["target"]
                 Objects.hero.rect.topleft = transition["player_start"]
+                Objects.hero.hitbox = (transition["player_start"][0], transition["player_start"][1],
+                                       Objects.hero.hitbox[2], Objects.hero.hitbox[3])
                 camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 

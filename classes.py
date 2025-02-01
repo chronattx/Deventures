@@ -186,7 +186,6 @@ class Hero(BaseCharacter):
         self.resize_image(image_width, image_height)
         self.resize_hitbox(image_width, image_height)
 
-        self.rect = self.image.get_rect(topleft=coords)
         self.rect.topleft = coords
 
         super().__init__((hitbox_x, hitbox_y, image_width, image_height), image_file, coords, speed, health)
@@ -353,7 +352,7 @@ class Hero(BaseCharacter):
     def draw(self, screen: pygame.surface.Surface, camera=None):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
         else:
             screen.blit(self.image, self.rect)
 
