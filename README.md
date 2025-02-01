@@ -70,3 +70,4 @@ pip install -r requirements.txt
 + Класс `DialogBox` используется для отрисовки и обработки диалогов.
 
 ## [Презентация](https://docs.google.com/presentation/d/1yTa5Li_EemPQd8RLBC_09uj5QtDuH5mrqvz_7m0jeJk/edit?usp=sharing)
+## [Видео](https://drive.google.com/file/d/1ce_KdhqEH6XWFaxF512fQltq1UlBFYEJ/view?usp=sharing)
