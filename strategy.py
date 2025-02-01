@@ -19,7 +19,7 @@ def example_strategy(enemy: Enemy):
     elif Objects.hero.is_in_hitbox((x, y - length)):
         enemy.weapon.direction = "up"
         return enemy.attack
-    elif Objects.hero.is_in_hitbox((x + length, y + length)):
+    elif Objects.hero.is_in_hitbox((x, y + length)):
         enemy.weapon.direction = "down"
         return enemy.attack
     else:
