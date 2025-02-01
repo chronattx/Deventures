@@ -25,7 +25,7 @@ class Weapon:
         self.character = character
         self.angle = 0
         self.rotation = False
-        self.facing_right_when_started = True
+        self.direction = "right"
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
         im = pygame.image.load(self.image_file)
@@ -38,26 +38,46 @@ class Weapon:
 
     def update(self):
         if self.rotation:
-            if self.facing_right_when_started:
+            if self.direction == "right":
                 self.angle -= 5
-                if self.angle < 240:
+                if self.angle < 210:
                     self.rotation = False
+                    self.hit()
+                    self.angle = 0
+            elif self.direction == "left":
+                self.angle += 5
+                if self.angle > 150:
+                    self.rotation = False
+                    self.hit()
+                    self.angle = 0
+            elif self.direction == "up":
+                self.angle -= 5
+                if self.angle == 0:
+                    self.angle = 360
+                    self.up_attack_bool = True
+                if self.up_attack_bool and self.angle < 300:
+                    self.rotation = False
+                    self.up_attack_bool = False
                     self.hit()
                     self.angle = 0
             else:
                 self.angle += 5
-                if self.angle > 120:
+                if self.angle > 240:
                     self.rotation = False
                     self.hit()
                     self.angle = 0
 
     def start_rotation(self):
         self.rotation = True
-        if self.character.facing_right:
-            self.facing_right_when_started = True
-            self.angle = 360
+        if self.direction == "right":
+            self.angle = 330
+        elif self.direction == "left":
+            self.angle = 30
+        elif self.direction == "up":
+            self.angle = 60
+            self.up_attack_bool = False
         else:
-            self.facing_right_when_started = False
+            self.angle = 120
 
 
     def hit(self):
