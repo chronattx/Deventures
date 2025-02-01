@@ -62,19 +62,17 @@ class Weapon:
 
 class BaseObject:
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
-        self.hitbox = hitbox
+        self.hitbox = pygame.Rect(hitbox)
         self.image_file = image_file
         self.coords = coords
         self.sprite = pygame.image.load(self.image_file)
 
     def is_in_hitbox(self, coord: Coord) -> bool:
-        if (self.hitbox[0] <= coord[0] <= self.hitbox[2] + self.hitbox[0] and
-            self.hitbox[1] <= coord[1] <= self.hitbox[3] + self.hitbox[1]):
-            return True
-        return False
+        return self.hitbox.collidepoint(coord)
 
     def update_hitbox(self, delta: Coord):
-        self.hitbox = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1], self.hitbox[2], self.hitbox[3])
+        # Обновляем хитбокс с учетом смещения
+        self.hitbox.move_ip(delta[0], delta[1])
 
     def draw(self, screen: pygame.surface.Surface):
         sprites = pygame.sprite.Group()
@@ -146,8 +144,6 @@ class Hero(BaseCharacter):
 
         super().__init__((hitbox_width, hitbox_height, hitbox_width, hitbox_height), image_file, coords, speed, health)
 
-        # Статическое изображение для состояния "idle"
-
         self.last_dx = 0  # Последнее направление по X
         self.last_dy = 0  # Последнее направление по Y
 
@@ -170,6 +166,20 @@ class Hero(BaseCharacter):
         self.max_dashes = 2  # Максимум рывков за период
         self.dash_window = 3000  # 3 секунды в миллисекундах
         self.cooldown_duration = 10000  # 10 секунд
+
+        self.max_health = health  # Максимальное здоровье
+        self.health = health  # Текущее здоровье
+
+        # Хитбокс
+        self.hitbox = pygame.Rect(self.rect.topleft, (hitbox_width, hitbox_height))
+        self.update_hitbox((0, 0))
+
+    def update_hitbox(self, delta: Coord):
+        """Обновляет хитбокс в соответствии с текущим положением персонажа."""
+        # Игнорируем delta, так как хитбокс синхронизируется через rect
+        self.hitbox.width = self.rect.width
+        self.hitbox.height = self.rect.height
+        self.hitbox.center = self.rect.center
 
     def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
@@ -227,8 +237,8 @@ class Hero(BaseCharacter):
                 break
 
         # Обновляем координаты центра
-
         self.coords = self.rect.center
+        self.update_hitbox((0, 0))  # Обновляем хитбокс
         self.update_animation(delta_time)
         self.last_dx = dx
         self.last_dy = dy
@@ -268,25 +278,26 @@ class Hero(BaseCharacter):
 
         # Применяем смещение
         self.rect.move_ip(dash_x, dash_y)
+        self.update_hitbox((0, 0))  # Обновляем хитбокс
         self.dash_history.append(current_time)
 
         # Проверяем коллизии
         if self.check_collisions(walls, objects):
             self.rect.topleft = original  # Откат при столкновении
+            self.update_hitbox((0, 0))  # Обновляем хитбокс
 
     def update_cooldowns(self, delta_time):
         """Обновление таймеров перезарядки"""
         if self.dash_cooldown > 0:
             self.dash_cooldown -= delta_time
 
-
     def check_collisions(self, walls, objects):
         """Проверка коллизий с окружением"""
         for wall in walls:
-            if self.rect.colliderect(wall):
+            if self.hitbox.colliderect(wall):
                 return True
         for obj in objects:
-            if self.rect.colliderect(obj):
+            if self.hitbox.colliderect(obj):
                 return True
         return False
 
@@ -305,9 +316,32 @@ class Hero(BaseCharacter):
     def draw(self, screen: pygame.surface.Surface, camera=None):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.hitbox), 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(health_bar_rect))
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), camera.apply(current_health_rect))
         else:
             screen.blit(self.image, self.rect)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), health_bar_rect)
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), current_health_rect)
 
     def resize_image(self, new_width, new_height):
         for key in self.animations:
@@ -316,11 +350,13 @@ class Hero(BaseCharacter):
             ]
         self.rect.width = new_width
         self.rect.height = new_height
+        self.update_hitbox((0, 0))  # Обновляем хитбокс
 
     def resize_hitbox(self, new_width, new_height):
         self.rect.width = new_width
         self.rect.height = new_height
         self.rect.center = (self.rect.centerx, self.rect.centery)
+        self.update_hitbox((0, 0))  # Обновляем хитбокс
 
     def update(self, screen: pygame.surface.Surface, camera, delta_time):
         if self.health <= 0:
@@ -328,6 +364,12 @@ class Hero(BaseCharacter):
         else:
             self.update_animation(delta_time)
             self.draw(screen, camera)
+
+    def take_damage(self, damage):
+        """Уменьшает здоровье персонажа на указанное количество."""
+        self.health -= damage
+        if self.health < 0:
+            self.health = 0
 
     def die(self):
         Objects.hero = None
