@@ -1,7 +1,9 @@
 from classes import *
 from animate_func import load_animation_frames
+from animate_func import load_cura_animation_frames
 from Level0_minigame1 import minigame_main
 import pygame
+from strategy import example_strategy
 
 
 # Размеры экрана
@@ -111,11 +113,11 @@ def main():
         "idle": idle_frames,
         "run": run_frames,
     }
-    hero_hitbox = (70, 70, 0, 0)
+    hero_hitbox = (600, 400, 0, 0)
     hero_image = "assets/animate_hero/MairouMotion1.png"
-    hero_speed = 1
+    hero_speed = 10
     hero_health = 100
-    player = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
+    Objects.hero = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
 
     rooms = create_rooms()
     current_room = "room1"
@@ -125,12 +127,22 @@ def main():
     dialog_box = DialogBox(rooms[current_room].text)
 
     running = True
+    cura_summoned = False
     cooldown_font = pygame.font.Font(None, 32)
+
+    cura_idle_frames = load_cura_animation_frames("Cura", 1)  # 1 кадра для idle
+    cura_run_frames = load_cura_animation_frames("Cura", 24)  # 24 кадра для run
+
+    cura_animations = {
+        "idle": cura_idle_frames,
+        "run": cura_run_frames,
+    }
+
 
     while running:
         # Обновление перезарядки
         delta_time = clock.get_time()
-        player.update_cooldowns(delta_time)
+        Objects.hero.update_cooldowns(delta_time)
 
         screen.fill((0, 0, 0))
 
@@ -146,8 +158,8 @@ def main():
                 # Рывок по Alt
                 if event.key in (pygame.K_LALT, pygame.K_RALT):
                     # Проверяем возможность рывка
-                    if player.dash_cooldown <= 0:
-                        player.dash(rooms[current_room].walls, rooms[current_room].objects)
+                    if Objects.hero.dash_cooldown <= 0:
+                        Objects.hero.dash(rooms[current_room].walls, rooms[current_room].objects)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
@@ -159,40 +171,49 @@ def main():
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and result == 'yes':
                         npc.following = True
+                        cura = Enemy(Rect((800, 400, 40, 40)), "Cura1.png", Coord((800, 400)), speed=3, health=50, strategy=example_strategy,
+                                     animations=cura_animations)
+                        cura_summoned = True
+                        start_weapon = Weapon(5, 79, "Weapons/Bata.png", cura)
+                        cura.get_weapon(start_weapon)
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
                         if game_result:
                             pass
 
         # Движение игрока
-        player.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
+        Objects.hero.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
 
         # Если НПС следует за игроком
         for npcs in rooms[current_room].npc:
             if npcs.following:
-                npcs.rect.center = player.rect.center
+                npcs.rect.center = Objects.hero.rect.center
 
         # Проверка переходов между комнатами
         for transition in rooms[current_room].transitions:
-            if transition["rect"].colliderect(player.rect):
+            if transition["rect"].colliderect(Objects.hero.rect):
                 current_room = transition["target"]
-                player.rect.topleft = transition["player_start"]
+                Objects.hero.rect.topleft = transition["player_start"]
                 camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 
         # Обновление камеры
-        camera.update(player)
+        camera.update(Objects.hero)
 
         # Отрисовка
         screen.fill((0, 0, 0))
         rooms[current_room].draw(screen, camera)
-        player.draw(screen, camera)
+        Objects.hero.draw(screen, camera)
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
 
-        if player.dash_cooldown > 0:
-            cooldown_seconds = max(0, int(player.dash_cooldown // 1000))
+        if cura_summoned:
+            cura.update_animation(0.15)
+            cura.update(screen, camera)
+
+        if Objects.hero.dash_cooldown > 0:
+            cooldown_seconds = max(0, int(Objects.hero.dash_cooldown // 1000))
             cooldown_text = cooldown_font.render(
                 f"Рывок доступен через: {cooldown_seconds} сек",
                 True,

@@ -25,26 +25,40 @@ class Weapon:
         self.character = character
         self.angle = 0
         self.rotation = False
+        self.facing_right_when_started = True
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
         im = pygame.image.load(self.image_file)
         if self.character.facing_right:
-            self.im = pygame.transform.flip(im, True, False)
+            im = pygame.transform.flip(im, True, False)
         im = pygame.transform.rotate(im, self.angle)
         rect = im.get_rect()
-        rect.center = (coords[0], coords[1] + 30)
+        rect.center = (coords[0], coords[1])
         screen.blit(im, camera.apply(rect))
 
     def update(self):
         if self.rotation:
-            self.angle += 5
-            if self.angle > 120:
-                self.rotation = False
-                self.hit()
-                self.angle = 0
+            if self.facing_right_when_started:
+                self.angle -= 5
+                if self.angle < 240:
+                    self.rotation = False
+                    self.hit()
+                    self.angle = 0
+            else:
+                self.angle += 5
+                if self.angle > 120:
+                    self.rotation = False
+                    self.hit()
+                    self.angle = 0
 
     def start_rotation(self):
         self.rotation = True
+        if self.character.facing_right:
+            self.facing_right_when_started = True
+            self.angle = 360
+        else:
+            self.facing_right_when_started = False
+
 
     def hit(self):
         if type(self.character) == Hero:
@@ -56,7 +70,7 @@ class Weapon:
                         break
         else:
             x, y = self.character.weapon_coords()
-            for a in range(x - self.length, x + 1):
+            for a in range(x - self.length, x + self.length + 1):
                 if Objects.hero.is_in_hitbox((a, y)):
                     Objects.hero.get_damage(self.damage)
                     break
@@ -73,9 +87,7 @@ class BaseObject:
     def is_in_hitbox(self, coord: Coord) -> bool:
         if (self.hitbox[0] <= coord[0] <= self.hitbox[2] + self.hitbox[0] and
             self.hitbox[1] <= coord[1] <= self.hitbox[3] + self.hitbox[1]):
-            print("GGGGGGGGGGGGGGGGGGGGGGGGGGGG")
             return True
-        print("passe")
         return False
 
     def update_hitbox(self, delta: Coord):
@@ -102,7 +114,8 @@ class BaseCharacter(BaseObject):
     def attack(self):
         self.melee_active = True
         if self.weapon is not None:
-            self.weapon.start_rotation()
+            if not self.weapon.rotation:
+                self.weapon.start_rotation()
             self.weapon.update()
 
     def stop_attack(self):
@@ -117,10 +130,9 @@ class BaseCharacter(BaseObject):
             self.weapon.show(self.weapon_coords(), screen, camera)
 
     def weapon_coords(self) -> Coord:
-        if self.facing_right:
-            return self.hitbox[0] + self.hitbox[2] - 20, self.hitbox[1]
-        else:
-            return self.hitbox[0] + 20, self.hitbox[1]
+        x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+        y = self.hitbox[1] + int(self.hitbox[3] * 0.6 + self.weapon.length / 2)
+        return x, y
 
     def get_damage(self, damage: int):
         if self.no_damage_time == 0:
@@ -137,33 +149,39 @@ class Hero(BaseCharacter):
         :param health: Здоровье персонажа.
         :param animations: Словарь с анимациями. Ключи: "idle", "run". Значения: списки кадров (pygame. Surface).
         """
+
+        self.original_image = pygame.image.load(image_file)
+        self.image = self.original_image
+        self.rect = self.image.get_rect(topleft=coords)
+
         hitbox_x, hitbox_y = hitbox[0], hitbox[1]
-        hitbox_width, hitbox_height = hitbox[2], hitbox[3]
+        image_width, image_height = hitbox[2], hitbox[3]
 
-        #if hitbox_width == 0 or hitbox_height == 0:
-        #    hitbox_width, hitbox_height = image_width, image_height
+        if hitbox[2] == 0 or hitbox[3] == 0:
+            image_width, image_height = self.rect.width, self.rect.height
 
-        super().__init__((hitbox_x, hitbox_y, hitbox_width, hitbox_height), image_file, coords, speed, health)
+
+        self.animations = animations  # Анимации персонажа
+
+        self.resize_image(image_width, image_height)
+        self.resize_hitbox(image_width, image_height)
+
+        self.rect = self.image.get_rect(topleft=coords)
+        self.rect.topleft = coords
+
+        super().__init__((hitbox_x, hitbox_y, image_width, image_height), image_file, coords, speed, health)
 
         # Статическое изображение для состояния "idle"
 
         self.last_dx = 0  # Последнее направление по X
         self.last_dy = 0  # Последнее направление по Y
 
-        self.original_image = pygame.image.load(image_file)
-        self.image = self.original_image
-        self.rect = self.image.get_rect(topleft=coords)
-        self.rect.center = coords
-
         self.facing_right = True  # Направление персонажа
-        self.animations = animations  # Анимации персонажа
         self.current_animation = "idle"  # Текущая анимация
         self.current_frame = 0  # Текущий кадр анимации
         self.animation_speed = 0.30  # Скорость смены кадров
         self.time_since_last_frame = 0  # Таймер для анимации
 
-        #self.resize_image(image_width, image_height)
-        #self.resize_hitbox(hitbox_width, hitbox_height)
         self.dash_history = []  # Временные метки последних рывков
         self.dash_cooldown = 0  # Оставшееся время перезарядки
         self.max_dashes = 2  # Максимум рывков за период
@@ -238,7 +256,7 @@ class Hero(BaseCharacter):
             self.update_hitbox((0, dy))
 
         # Обновляем координаты центра
-        self.coords = self.rect.center
+        self.coords = self.rect.topleft
         self.update_animation(delta_time)
         self.last_dx = dx
         self.last_dy = dy
@@ -315,8 +333,7 @@ class Hero(BaseCharacter):
     def draw(self, screen: pygame.surface.Surface, camera=None):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
-            hit_rect = self.image.get_rect(topleft=(self.hitbox[0], self.hitbox[1]))
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(hit_rect), 2)
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
         else:
             screen.blit(self.image, self.rect)
 
