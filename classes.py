@@ -93,38 +93,6 @@ class Weapon:
             self.angle = 120
 
 
-    def hit(self):
-        if type(self.character) == Hero:
-            for enemy in Objects.enemies:
-                x, y = self.character.weapon_coords()
-                for a in range(x - self.length, x + 1):
-                    if enemy.is_in_hitbox((a, y)):
-                        enemy.get_damage(self.damage)
-                        break
-        else:
-            x, y = self.character.weapon_coords()
-            if self.direction == "right":
-                for a in range(x, x + self.length + 1):
-                    if Objects.hero.is_in_hitbox((a, y)):
-                        Objects.hero.get_damage(self.damage)
-                        break
-            if self.direction == "left":
-                for a in range(x - self.length - 1, x):
-                    if Objects.hero.is_in_hitbox((a, y)):
-                        Objects.hero.get_damage(self.damage)
-                        break
-            if self.direction == "up":
-                for a in range(y - self.length - 1, y):
-                    if Objects.hero.is_in_hitbox((x, a)):
-                        Objects.hero.get_damage(self.damage)
-                        break
-            else:
-                for a in range(y, y + self.length + 1):
-                    if Objects.hero.is_in_hitbox((x, a)):
-                        Objects.hero.get_damage(self.damage)
-                        break
-
-
 class BaseObject:
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
         self.hitbox = pygame.Rect(hitbox[0], hitbox[1], hitbox[2], hitbox[3])
