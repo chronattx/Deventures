@@ -33,34 +33,8 @@ def create_rooms():
     room1_npc = [
         NPC(800, 400, "assets/NPC_files/walk1.png")
     ]
-    cura_idle_frames = load_cura_animation_frames("Cura", 1)  # 1 кадра для idle
-    cura_run_frames = load_cura_animation_frames("Cura", 24)  # 24 кадра для run
-
-    cura_animations = {
-        "idle": cura_idle_frames,
-        "run": cura_run_frames,
-    }
-    cura1 = Enemy(Rect((800, 400, 40, 40)), "Cura1.png", Coord((800, 400)), speed=3, health=50,
-                 strategy=example_strategy,
-                 animations=cura_animations)
-    start_weapon1 = Weapon(5, 79, "Weapons/Bata.png", 5)
-    cura2 = Enemy(Rect((700, 400, 40, 40)), "Cura1.png", Coord((700, 400)), speed=4, health=50,
-                  strategy=example_strategy,
-                  animations=cura_animations)
-    start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(Rect((600, 400, 40, 40)), "Cura1.png", Coord((600, 400)), speed=2, health=50,
-                  strategy=example_strategy,
-                  animations=cura_animations)
-    start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
-    cura1.get_weapon(start_weapon1)
-    cura2.get_weapon(start_weapon2)
-    cura3.get_weapon(start_weapon3)
-    room1_enemies = [
-        [[cura1, start_weapon1], False], [[cura2, start_weapon2], False], [[cura3, start_weapon3], False]
-    ]
     room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
-    rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls,
-                          room1_transitions, room1_objects, room1_npc, room1_enemies, room1_dialog)
+    rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls, room1_transitions, room1_objects, room1_npc, room1_dialog)
 
     # Комната 2
     room2_width, room2_height = 800, 800
@@ -144,8 +118,6 @@ def main():
     hero_speed = 10
     hero_health = 100
     Objects.hero = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
-    hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 5)
-    Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
     current_room = "room1"
@@ -157,6 +129,15 @@ def main():
     running = True
     cura_summoned = False
     cooldown_font = pygame.font.Font(None, 32)
+
+    cura_idle_frames = load_cura_animation_frames("Cura", 1)  # 1 кадра для idle
+    cura_run_frames = load_cura_animation_frames("Cura", 24)  # 24 кадра для run
+
+    cura_animations = {
+        "idle": cura_idle_frames,
+        "run": cura_run_frames,
+    }
+
 
     while running:
         # Обновление перезарядки
@@ -170,7 +151,6 @@ def main():
 
         # Отрисовка интерфейса
 
-        mouse_x, mouse_y = pygame.mouse.get_pos()
         pygame.display.set_caption("GoodGame")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
@@ -193,9 +173,11 @@ def main():
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and result == 'yes':
                         npc.following = True
-                        rooms[current_room].enemies[0][1] = True
-                        rooms[current_room].enemies[1][1] = True
-                        rooms[current_room].enemies[2][1] = True
+                        cura = Enemy(Rect((800, 400, 40, 40)), "Cura/Cura1.png", Coord((800, 400)), speed=3, health=50, strategy=example_strategy,
+                                     animations=cura_animations)
+                        cura_summoned = True
+                        start_weapon = Weapon(5, 79, "Weapons/Bata.png", cura)
+                        cura.get_weapon(start_weapon)
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
                         if game_result:
@@ -219,27 +201,21 @@ def main():
                 camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 
-
-
         # Обновление камеры
         camera.update(Objects.hero)
 
         # Отрисовка
         screen.fill((0, 0, 0))
         rooms[current_room].draw(screen, camera)
-
-        # Отрисовка врагов в комнате
-        for enemy_combo in rooms[current_room].enemies:
-            if enemy_combo[1]:
-                enemy_combo[0][0].update_animation(0.15)
-                enemy_combo[0][0].update(screen, camera)
-                enemy_combo[0][0].draw(screen, camera)
-
         Objects.hero.draw(screen, camera)
         Objects.hero.draw_energy_bar(screen)
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
+
+        if cura_summoned:
+            cura.update_animation(0.15)
+            cura.update(screen, camera)
 
         if Objects.hero.dash_cooldown > 0:
             cooldown_seconds = max(0, int(Objects.hero.dash_cooldown // 1000))

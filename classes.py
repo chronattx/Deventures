@@ -8,13 +8,19 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
 class GameObject:
-    def __init__(self, image_path, x, y):
-        self.image_path = image_path  # Сохраняем путь к изображению
+    def __init__(self, image_path, x, y, collision_offset=(0, 0), collision_size=None):
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
+        # Хитбокс для коллизий
+        self.collision_rect = self.rect.copy()
+        if collision_size:
+            self.collision_rect.size = collision_size
+        self.collision_rect.move_ip(collision_offset)
+
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
+
 
 
 
@@ -247,8 +253,8 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси X
         for obj in objects:
-            if self.rect.colliderect(obj):
-                # Если есть коллизия, отменяем перемещение по X
+            if self.rect.colliderect(obj.collision_rect):
+                # Обработка коллизии
                 self.rect.x -= dx
                 dx_not_cancelled = False
                 break
@@ -268,10 +274,10 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси Y
         for obj in objects:
-            if self.rect.colliderect(obj):
-                # Если есть коллизия, отменяем перемещение по Y
-                self.rect.y -= dy
-                dy_not_cancelled = False
+            if self.rect.colliderect(obj.collision_rect):
+                # Обработка коллизии
+                self.rect.x -= dy
+                dx_not_cancelled = False
                 break
 
         if dy_not_cancelled:
@@ -564,12 +570,14 @@ class Room:
         for transition in self.transitions:
             pygame.draw.rect(screen, (255, 0, 0), camera.apply(transition["rect"]), 2)
 
-        # Отображение объектов
-        for obj in self.objects:
-            obj.draw(screen, camera)
-
+        # Отрисовка NPC
         for npc in self.npc:
             npc.draw(screen, camera)
+
+        # Отрисовка врагов
+        for enemy_combo in self.enemies:
+            if enemy_combo[1]:
+                enemy_combo[0][0].draw(screen, camera)
 
     def check_object_click(self, mouse_pos, camera, target_object="Table.png"):
         """ Проверяет, кликнули ли по объекту с заданным изображением, учитывая смещение камеры. """
