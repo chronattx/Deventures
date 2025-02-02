@@ -40,15 +40,15 @@ def create_rooms():
         "idle": cura_idle_frames,
         "run": cura_run_frames,
     }
-    cura1 = Enemy(pygame.Rect((800, 400, 40, 40)), "Cura1.png", speed=3, health=50,
+    cura1 = Enemy(pygame.Rect((800, 400, 40, 40)), "Cura/Cura1.png", speed=3, health=50,
                  strategy=example_strategy,
                  animations=cura_animations)
     start_weapon1 = Weapon(5, 79, "Weapons/Bata.png", 5)
-    cura2 = Enemy(pygame.Rect((700, 400, 40, 40)), "Cura1.png", speed=4, health=50,
+    cura2 = Enemy(pygame.Rect((700, 400, 40, 40)), "Cura/Cura1.png", speed=4, health=50,
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura1.png", speed=2, health=50,
+    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura/Cura1.png", speed=2, health=50,
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
@@ -233,10 +233,15 @@ def main():
 
         # Отрисовка врагов в комнате
         for enemy_combo in rooms[current_room].enemies:
-            if enemy_combo[1]:
-                enemy_combo[0][0].update_animation(0.15)
-                enemy_combo[0][0].update(screen, camera, rooms[current_room])
-                enemy_combo[0][0].draw(screen, camera)
+            if enemy_combo[1] and Objects.hero is not None:
+                enemy = enemy_combo[0][0]
+                enemy.update_animation(clock.get_time() / 1000)
+                enemy.go_to_hero(
+                    Objects.hero.hitbox.center,
+                    rooms[current_room].walls,
+                    rooms[current_room].objects
+                )
+                enemy.draw(screen, camera)
 
         Objects.hero.update(0, screen, camera)
 
