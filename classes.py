@@ -198,6 +198,12 @@ class Hero(BaseCharacter):
         self.animation_speed = 0.30  # Скорость смены кадров
         self.time_since_last_frame = 0  # Таймер для анимации
 
+        # Энергетическая система
+        self.max_energy = 25
+        self.current_energy = self.max_energy
+        self.energy_regen_timer = 0  # Таймер восстановления энергии
+        self.energy_regen_interval = 3000  # 3 секунды в миллисекундах
+
         self.dash_history = []  # Временные метки последних рывков
         self.dash_cooldown = 0  # Оставшееся время перезарядки
         self.max_dashes = 2  # Максимум рывков за период
@@ -393,12 +399,39 @@ class Hero(BaseCharacter):
         self.rect.height = new_height
         self.rect.center = (self.rect.centerx, self.rect.centery)
 
-    def update(self, screen: pygame.surface.Surface, camera, delta_time):
+    def use_energy(self, amount):
+        """Использует энергию и возвращает True, если энергии достаточно"""
+        if self.current_energy >= amount:
+            self.current_energy -= amount
+            return True
+        return False
+
+    def regen_energy(self, delta_time):
+        """Восстанавливает энергию со временем"""
+        self.energy_regen_timer += delta_time
+        if self.energy_regen_timer >= self.energy_regen_interval:
+            self.current_energy = min(self.current_energy + 1, self.max_energy)
+            self.energy_regen_timer = 0
+
+    def draw_energy_bar(self, screen):
+        bar_width = 200
+        bar_height = 20
+        bar_x = 1080 - bar_width - 20  # SCREEN_WIDTH = 1080
+        bar_y = 20
+
+        pygame.draw.rect(screen, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))
+        energy_width = (self.current_energy / self.max_energy) * bar_width
+        pygame.draw.rect(screen, (0, 200, 255), (bar_x, bar_y, energy_width, bar_height))
+
+        font = pygame.font.Font(None, 24)
+        text = font.render(f"{self.current_energy}/{self.max_energy}", True, (0, 0, 0))
+        screen.blit(text, (bar_x, bar_y + bar_height + 5))
+
+    def update(self, delta_time):
         if self.health <= 0:
             self.die()
         else:
             self.update_animation(delta_time)
-            self.draw(screen, camera)
 
     def die(self):
         Objects.hero = None

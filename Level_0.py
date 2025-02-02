@@ -163,6 +163,9 @@ def main():
         delta_time = clock.get_time()
         Objects.hero.update_cooldowns(delta_time)
 
+        # Обновление энергии игрока
+        Objects.hero.regen_energy(delta_time)
+
         screen.fill((0, 0, 0))
 
         # Отрисовка интерфейса
@@ -233,6 +236,7 @@ def main():
                 enemy_combo[0][0].draw(screen, camera)
 
         Objects.hero.draw(screen, camera)
+        Objects.hero.draw_energy_bar(screen)
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
