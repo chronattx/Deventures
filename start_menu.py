@@ -50,36 +50,39 @@ while running:
             # Проверяем попадание по кнопке
             if button_x <= mx <= button_x + button_w and button_y <= my <= button_y + button_h:
                 main()
+                running = False
+                break
+    else:
 
-    # Двигаем фонарик за мышкой
-    light.position = pygame.mouse.get_pos()
+        # Двигаем фонарик за мышкой
+        light.position = pygame.mouse.get_pos()
 
-    # Очищаем, рисуем фон
-    lights_engine.clear(0, 0, 0)
-    lights_engine.render_texture(
-        tex_background,
-        pl2d.BACKGROUND,
-        pygame.Rect(0, 0, screen_res[0], screen_res[1]),
-        pygame.Rect(0, 0, tex_background.width, tex_background.height)
-    )
+        # Очищаем, рисуем фон
+        lights_engine.clear(0, 0, 0)
+        lights_engine.render_texture(
+            tex_background,
+            pl2d.BACKGROUND,
+            pygame.Rect(0, 0, screen_res[0], screen_res[1]),
+            pygame.Rect(0, 0, tex_background.width, tex_background.height)
+        )
 
-    # Рендерим кнопку (освещаемый объект)
-    lights_engine.render_texture(
-        btn_texture,
-        pl2d.BACKGROUND,  # освещаемый слой (если отсутствует — замените на число 1)
-        pygame.Rect(button_x, button_y, button_w, button_h),
-        pygame.Rect(0, 0, button_w, button_h)
-    )
+        # Рендерим кнопку (освещаемый объект)
+        lights_engine.render_texture(
+            btn_texture,
+            pl2d.BACKGROUND,  # освещаемый слой (если отсутствует — замените на число 1)
+            pygame.Rect(button_x, button_y, button_w, button_h),
+            pygame.Rect(0, 0, button_w, button_h)
+        )
 
-    # Накладываем освещение
-    lights_engine.render()
+        # Накладываем освещение
+        lights_engine.render()
 
-    # Flip
-    pygame.display.flip()
+        # Flip
+        pygame.display.flip()
 
-    # Для отладки
-    t2 = time.time()
-    mspt = (t2 - t1) * 1000
-    pygame.display.set_caption(f'{mspt:.2f} mspt; {clock.get_fps():.2f} fps')
+        # Для отладки
+        t2 = time.time()
+        mspt = (t2 - t1) * 1000
+        pygame.display.set_caption(f'{mspt:.2f} mspt; {clock.get_fps():.2f} fps')
 
 pygame.quit()
