@@ -144,11 +144,13 @@ def main():
         delta_time = clock.get_time()
         Objects.hero.update_cooldowns(delta_time)
 
+        # Обновление энергии игрока
+        Objects.hero.regen_energy(delta_time)
+
         screen.fill((0, 0, 0))
 
         # Отрисовка интерфейса
 
-        mouse_x, mouse_y = pygame.mouse.get_pos()
         pygame.display.set_caption("GoodGame")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
@@ -171,7 +173,7 @@ def main():
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and result == 'yes':
                         npc.following = True
-                        cura = Enemy(Rect((800, 400, 40, 40)), "Cura1.png", Coord((800, 400)), speed=3, health=50, strategy=example_strategy,
+                        cura = Enemy(Rect((800, 400, 40, 40)), "Cura/Cura1.png", Coord((800, 400)), speed=3, health=50, strategy=example_strategy,
                                      animations=cura_animations)
                         cura_summoned = True
                         start_weapon = Weapon(5, 79, "Weapons/Bata.png", cura)
@@ -206,6 +208,7 @@ def main():
         screen.fill((0, 0, 0))
         rooms[current_room].draw(screen, camera)
         Objects.hero.draw(screen, camera)
+        Objects.hero.draw_energy_bar(screen)
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
