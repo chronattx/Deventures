@@ -1,6 +1,5 @@
 from classes import *
-from animate_func import load_animation_frames
-from animate_func import load_cura_animation_frames
+from animate_func import load_animation_frames, load_cura_animation_frames, load_losandro_animation_frames
 from Level0_minigame1 import minigame_main
 import pygame
 from strategy import example_strategy
@@ -36,30 +35,52 @@ def create_rooms():
     cura_idle_frames = load_cura_animation_frames("Cura", 1)  # 1 кадра для idle
     cura_run_frames = load_cura_animation_frames("Cura", 24)  # 24 кадра для run
 
+    bull_idle_frames = load_losandro_animation_frames("Losandro", 1)  # 1 кадра для idle
+    bull_run_frames = load_losandro_animation_frames("Losandro", 18)
+
     cura_animations = {
         "idle": cura_idle_frames,
         "run": cura_run_frames,
     }
-    cura1 = Enemy(pygame.Rect((800, 400, 40, 40)), "Cura1.png", speed=3, health=50,
+
+    bull_animations = {
+        "idle": bull_idle_frames,
+        "run": bull_run_frames,
+    }
+
+    cura1 = Enemy(pygame.Rect((800, 400, 102, 170)), "Cura1.png", speed=3, health=50,
                  strategy=example_strategy,
-                 animations=cura_animations)
+                 animations=cura_animations, animation_speed=0.30)
     start_weapon1 = Weapon(5, 79, "Weapons/Bata.png", 5)
-    cura2 = Enemy(pygame.Rect((700, 400, 40, 40)), "Cura1.png", speed=4, health=50,
+    cura2 = Enemy(pygame.Rect((700, 400, 0, 0)), "Cura1.png", speed=4, health=50,
                   strategy=example_strategy,
-                  animations=cura_animations)
+                  animations=cura_animations, animation_speed=0.10)
     start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura1.png", speed=2, health=50,
+    cura3 = Enemy(pygame.Rect((600, 400, 0, 0)), "Cura1.png", speed=2, health=50,
                   strategy=example_strategy,
-                  animations=cura_animations)
+                  animations=cura_animations, animation_speed=0.50)
+    bull_sword = Weapon(10, 49, "Stolb.png", 7)
+    bull = Enemy(pygame.Rect((600, 600, 300, 300)), "Losandro/Losandro1.png", speed=2, health=25,
+                  strategy=example_strategy,
+                  animations=bull_animations, animation_speed=0.25)
+    bull_sword2 = Weapon(1, 49, "Stolb.png", 12)
+    bull2 = Enemy(pygame.Rect((200, 600, 30, 30)), "Losandro/Losandro1.png", speed=4, health=25,
+                 strategy=example_strategy,
+                 animations=bull_animations, animation_speed=0.05)
     start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
     Objects.enemies.append(cura1)
     Objects.enemies.append(cura2)
     Objects.enemies.append(cura3)
+    Objects.enemies.append(bull)
+    Objects.enemies.append(bull2)
     cura1.get_weapon(start_weapon1)
     cura2.get_weapon(start_weapon2)
     cura3.get_weapon(start_weapon3)
+    bull.get_weapon(bull_sword)
+    bull2.get_weapon(bull_sword2)
     room1_enemies = [
-        [[cura1, start_weapon1], False], [[cura2, start_weapon2], False], [[cura3, start_weapon3], False]
+        [[cura1, start_weapon1], False], [[cura2, start_weapon2], False], [[cura3, start_weapon3], False],
+        [[bull, bull_sword], False], [[bull2, bull_sword2], False]
     ]
     room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
     rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls,
@@ -142,11 +163,12 @@ def main():
         "idle": idle_frames,
         "run": run_frames,
     }
-    hero_hitbox = pygame.Rect(600, 400, 92, 75)
+
+    hero_hitbox = pygame.Rect(600, 400, 0, 0)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
     hero_health = 100
-    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations)
+    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations, 0.3)
     hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 3)
     Objects.hero.get_weapon(hero_weapon)
 
@@ -201,6 +223,8 @@ def main():
                         rooms[current_room].enemies[0][1] = True
                         rooms[current_room].enemies[1][1] = True
                         rooms[current_room].enemies[2][1] = True
+                        rooms[current_room].enemies[3][1] = True
+                        rooms[current_room].enemies[4][1] = True
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
                         if game_result:
@@ -240,7 +264,6 @@ def main():
             if enemy_combo[1]:
                 enemy_combo[0][0].update_animation(0.15)
                 enemy_combo[0][0].update(screen, camera, rooms[current_room])
-                enemy_combo[0][0].draw(screen, camera)
 
         Objects.hero.draw(screen, camera)
         Objects.hero.draw_energy_bar(screen)
