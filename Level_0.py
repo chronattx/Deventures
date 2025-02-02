@@ -40,15 +40,15 @@ def create_rooms():
         "idle": cura_idle_frames,
         "run": cura_run_frames,
     }
-    cura1 = Enemy(Rect((800, 400, 40, 40)), "Cura1.png", Coord((800, 400)), speed=3, health=50,
+    cura1 = Enemy(pygame.Rect((800, 400, 40, 40)), "Cura1.png", speed=3, health=50,
                  strategy=example_strategy,
                  animations=cura_animations)
     start_weapon1 = Weapon(5, 79, "Weapons/Bata.png", 5)
-    cura2 = Enemy(Rect((700, 400, 40, 40)), "Cura1.png", Coord((700, 400)), speed=4, health=50,
+    cura2 = Enemy(pygame.Rect((700, 400, 40, 40)), "Cura1.png", speed=4, health=50,
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(Rect((600, 400, 40, 40)), "Cura1.png", Coord((600, 400)), speed=2, health=50,
+    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura1.png", speed=2, health=50,
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
@@ -142,11 +142,11 @@ def main():
         "idle": idle_frames,
         "run": run_frames,
     }
-    hero_hitbox = (600, 400, 92, 75)
+    hero_hitbox = pygame.Rect(600, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
     hero_health = 100
-    Objects.hero = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
+    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations)
     hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 3)
     Objects.hero.get_weapon(hero_weapon)
 
@@ -228,7 +228,7 @@ def main():
 
         Objects.hero.update()
 
-        # Обновление камерыaaa
+        # Обновление камеры
         camera.update(Objects.hero)
 
         # Отрисовка

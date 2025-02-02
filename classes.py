@@ -1,6 +1,6 @@
 import pygame
 from typing import Callable
-from data_types import Coord, Rect
+from data_types import Coord
 import math
 
 
@@ -96,10 +96,9 @@ class Weapon:
 
 
 class BaseObject:
-    def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
+    def __init__(self, hitbox: pygame.Rect, image_file: str):
         self.hitbox = pygame.Rect(hitbox[0], hitbox[1], hitbox[2], hitbox[3])
         self.image_file = image_file
-        self.coords = coords
         self.sprite = pygame.image.load(self.image_file)
         self.facing_right = True
 
@@ -110,16 +109,17 @@ class BaseObject:
         return False
 
     def update_hitbox(self, delta: Coord):
-        self.hitbox = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1], self.hitbox[2], self.hitbox[3])
+        self.hitbox = pygame.Rect(self.hitbox[0] + delta[0], self.hitbox[1] + delta[1], self.hitbox[2], self.hitbox[3])
 
     def draw(self, screen: pygame.surface.Surface, camera):
-        rect = self.sprite.get_rect(topleft=(self.coords[0], self.coords[1]))
+        rect = self.sprite.get_rect(topleft=(self.hitbox[0], self.hitbox[1]))
+        pygame.draw.rect(screen, (255, 0, 0), camera.apply(rect), 2)
         screen.blit(self.sprite, camera.apply(rect))
 
 
 class BaseCharacter(BaseObject):
-    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int):
-        super().__init__(hitbox, image_file, coords)
+    def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, animations):
+        super().__init__(hitbox, image_file)
         self.speed = speed
         self.health = self.max_health = health
         self.weapon = None
@@ -195,7 +195,7 @@ class BaseCharacter(BaseObject):
 
 
 class Hero(BaseCharacter):
-    def __init__(self, hitbox, image_file, coords, speed, health, animations):
+    def __init__(self, hitbox, image_file, speed, health, animations):
         """
         :param hitbox: Кортеж с размерами хитбокса и изображения.
         :param image_file: Файл изображения персонажа (для статического состояния).
@@ -207,7 +207,7 @@ class Hero(BaseCharacter):
 
         self.original_image = pygame.image.load(image_file)
         self.image = self.original_image
-        self.rect = self.image.get_rect(topleft=coords)
+        self.rect = self.image.get_rect(topleft=(hitbox[0], hitbox[1]))
 
         hitbox_x, hitbox_y = hitbox[0], hitbox[1]
         image_width, image_height = hitbox[2], hitbox[3]
@@ -221,9 +221,9 @@ class Hero(BaseCharacter):
         self.resize_image(image_width, image_height)
         self.resize_hitbox(image_width, image_height)
 
-        self.rect.topleft = coords
+        self.rect.topleft = (hitbox[0], hitbox[1])
 
-        super().__init__((hitbox_x, hitbox_y, image_width, image_height), image_file, coords, speed, health)
+        super().__init__((hitbox_x, hitbox_y, image_width, image_height), image_file, speed, health, animations)
 
         # Статическое изображение для состояния "idle"
 
@@ -270,7 +270,7 @@ class Hero(BaseCharacter):
 
 
 
-    def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
+    def move(self, keys, walls: list[pygame.Rect], objects: list[pygame.Rect], delta_time):
         dx, dy = 0, 0
 
         # Обработка нажатий клавиш
@@ -497,8 +497,8 @@ class Hero(BaseCharacter):
 
 
 class Enemy(BaseCharacter):
-    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int, strategy: Callable, animations):
-        super().__init__(hitbox, image_file, coords, speed, health)
+    def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, strategy: Callable, animations):
+        super().__init__(hitbox, image_file, speed, health, animations)
         self.strategy = strategy
         self.animations = animations  # Анимации персонажа
         self.current_animation = "run"  # Текущая анимация
@@ -507,7 +507,7 @@ class Enemy(BaseCharacter):
         self.time_since_last_frame = 0  # Таймер для анимации
 
     def move(self, delta: Coord):
-        self.coords = (self.coords[0] + delta[0], self.coords[1] + delta[1])
+        self.coords = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1])
         self.update_hitbox(delta)
         if delta[0] >= 0:
             self.facing_right = True
@@ -523,7 +523,7 @@ class Enemy(BaseCharacter):
             self.draw(screen, camera)
 
     def go_to_hero(self):
-        x1, y1 = self.coords
+        x1, y1 = self.hitbox.center
         x2, y2 = Objects.hero.coords
         k = self.speed / (((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5 + 0.0000001)
         distance = (int(k * (x2 - x1)), int(k * (y2 - y1)))
@@ -556,7 +556,7 @@ class Enemy(BaseCharacter):
 
 
 class Peaceful(BaseCharacter):
-    def __init__(self, hitbox: Rect, image_file: str, coords: Coord, speed: int, health: int):
+    def __init__(self, hitbox: pygame.Rect, image_file: str, coords: Coord, speed: int, health: int):
         super().__init__(hitbox, image_file, coords, speed, health)
         self.dialogs = ['']
         self.current = 0
