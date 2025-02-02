@@ -1,6 +1,7 @@
 import pygame
 from typing import Callable
 from data_types import Coord, Rect
+import math
 
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
@@ -18,14 +19,17 @@ class GameObject:
 
 
 class Weapon:
-    def __init__(self, damage: int, length: int, image_file: str, character=None):
+    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: str, character=None):
         self.damage = damage
         self.length = length
         self.image_file = image_file
         self.character = character
+        self.special_vector = pygame.math.Vector2(0, 0)
         self.angle = 0
         self.rotation = False
         self.direction = "right"
+        self.hero_hitted = False
+        self.angle_per_frame = angle_per_frame
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
         im = pygame.image.load(self.image_file)
@@ -33,42 +37,51 @@ class Weapon:
             im = pygame.transform.flip(im, True, False)
         im = pygame.transform.rotate(im, self.angle)
         rect = im.get_rect()
+        rect = rect.move(self.special_vector)
         rect.center = (coords[0], coords[1])
         screen.blit(im, camera.apply(rect))
 
-    def update(self):
+    def update(self, coords):
+        if not self.hero_hitted:
+            if self.character == Objects.hero:
+                pass
+            else:
+                for multiplier in [0, 0.5, 1]:
+                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle))
+                    y_proection = coords[1] + int(self.length * multiplier * math.cos(self.angle))
+                    if Objects.hero.is_in_hitbox((x_proection, y_proection)):
+                       Objects.hero.get_damage(self.damage)
+                       self.hero_hitted = True
+                       break
         if self.rotation:
             if self.direction == "right":
-                self.angle -= 5
+                self.angle -= self.angle_per_frame
                 if self.angle < 210:
                     self.rotation = False
-                    self.hit()
                     self.angle = 0
             elif self.direction == "left":
-                self.angle += 5
+                self.angle += self.angle_per_frame
                 if self.angle > 150:
                     self.rotation = False
-                    self.hit()
                     self.angle = 0
             elif self.direction == "up":
-                self.angle -= 5
+                self.angle -= self.angle_per_frame
                 if self.angle == 0:
                     self.angle = 360
                     self.up_attack_bool = True
                 if self.up_attack_bool and self.angle < 300:
                     self.rotation = False
                     self.up_attack_bool = False
-                    self.hit()
                     self.angle = 0
             else:
-                self.angle += 5
+                self.angle += self.angle_per_frame
                 if self.angle > 240:
                     self.rotation = False
-                    self.hit()
                     self.angle = 0
 
     def start_rotation(self):
         self.rotation = True
+        self.hero_hitted = False
         if self.direction == "right":
             self.angle = 330
         elif self.direction == "left":
@@ -90,15 +103,31 @@ class Weapon:
                         break
         else:
             x, y = self.character.weapon_coords()
-            for a in range(x - self.length, x + self.length + 1):
-                if Objects.hero.is_in_hitbox((a, y)):
-                    Objects.hero.get_damage(self.damage)
-                    break
+            if self.direction == "right":
+                for a in range(x, x + self.length + 1):
+                    if Objects.hero.is_in_hitbox((a, y)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            if self.direction == "left":
+                for a in range(x - self.length - 1, x):
+                    if Objects.hero.is_in_hitbox((a, y)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            if self.direction == "up":
+                for a in range(y - self.length - 1, y):
+                    if Objects.hero.is_in_hitbox((x, a)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            else:
+                for a in range(y, y + self.length + 1):
+                    if Objects.hero.is_in_hitbox((x, a)):
+                        Objects.hero.get_damage(self.damage)
+                        break
 
 
 class BaseObject:
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
-        self.hitbox = hitbox
+        self.hitbox = pygame.Rect(hitbox[0], hitbox[1], hitbox[2], hitbox[3])
         self.image_file = image_file
         self.coords = coords
         self.sprite = pygame.image.load(self.image_file)
@@ -136,7 +165,7 @@ class BaseCharacter(BaseObject):
         if self.weapon is not None:
             if not self.weapon.rotation:
                 self.weapon.start_rotation()
-            self.weapon.update()
+            self.weapon.update(self.weapon_coords())
 
     def stop_attack(self):
         self.melee_active = False
@@ -352,9 +381,36 @@ class Hero(BaseCharacter):
     def draw(self, screen: pygame.surface.Surface, camera=None):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
-            #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(health_bar_rect))
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), camera.apply(current_health_rect))
+            if self.weapon is not None:
+                self.weapon.show(self.weapon_coords(), screen, camera)
         else:
             screen.blit(self.image, self.rect)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), health_bar_rect)
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), current_health_rect)
+            if self.weapon is not None:
+                self.weapon.show(self.weapon_coords(), screen, camera)
 
     def resize_image(self, new_width, new_height):
         for key in self.animations:
@@ -409,7 +465,7 @@ class Enemy(BaseCharacter):
     def go_to_hero(self):
         x1, y1 = self.coords
         x2, y2 = Objects.hero.coords
-        k = self.speed / ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+        k = self.speed / (((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5 + 0.0000001)
         distance = (int(k * (x2 - x1)), int(k * (y2 - y1)))
         self.move(distance)
 
@@ -483,7 +539,7 @@ class Camera:
 
 # Комната
 class Room:
-    def __init__(self, width, height, image_path, walls, transitions, objects=None, npc=None, text=None):
+    def __init__(self, width, height, image_path, walls, transitions, objects=None, npc=None, enemies=None, text=None):
         self.width = width
         self.height = height
         self.image = pygame.image.load(image_path).convert()  # Фон комнаты
@@ -492,6 +548,7 @@ class Room:
         self.transitions = transitions  # Список переходов в другие комнаты
         self.objects = objects if objects is not None else []
         self.npc = npc if npc is not None else []
+        self.enemies = enemies if enemies is not None else []
         self.text = text if text is not None else []
 
     def draw(self, screen, camera):

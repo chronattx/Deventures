@@ -10,16 +10,16 @@ def example_strategy(enemy: Enemy):
         return enemy.run_away
     elif Objects.hero is None:
         return enemy.wait
-    elif Objects.hero.is_in_hitbox((x + length, y)):
+    elif Objects.hero.is_in_hitbox((x + length, y)) :
         enemy.weapon.direction = "right"
         return enemy.attack
-    elif Objects.hero.is_in_hitbox((x - length, y)):
+    elif Objects.hero.is_in_hitbox((x - length, y)) :
         enemy.weapon.direction = "left"
         return enemy.attack
-    elif Objects.hero.is_in_hitbox((x, y - length)):
+    elif Objects.hero.is_in_hitbox((x, y - length)) or Objects.hero.is_in_hitbox((x, y)):
         enemy.weapon.direction = "up"
         return enemy.attack
-    elif Objects.hero.is_in_hitbox((x + length, y + length)):
+    elif Objects.hero.is_in_hitbox((x, y + length)):
         enemy.weapon.direction = "down"
         return enemy.attack
     else:
