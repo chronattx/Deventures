@@ -52,6 +52,9 @@ def create_rooms():
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
+    Objects.enemies.append(cura1)
+    Objects.enemies.append(cura2)
+    Objects.enemies.append(cura3)
     cura1.get_weapon(start_weapon1)
     cura2.get_weapon(start_weapon2)
     cura3.get_weapon(start_weapon3)
@@ -144,11 +147,13 @@ def main():
     hero_speed = 10
     hero_health = 100
     Objects.hero = Hero(hero_hitbox, hero_image, (600, 400), hero_speed, hero_health, animations)
-    hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 5)
+    hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 3)
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
     current_room = "room1"
+
+    Objects.hero.get_targets_to_weapon(rooms["room1"])
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     # Создаем НПС
@@ -203,25 +208,27 @@ def main():
 
         # Движение игрока
         Objects.hero.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
+        Objects.hero.attack(keys)
 
         # Если НПС следует за игроком
         for npcs in rooms[current_room].npc:
             if npcs.following:
                 npcs.rect.center = Objects.hero.rect.center
 
-        # Проверка переходов между комнатами
+        # Проверка переходов между комнатамиd
         for transition in rooms[current_room].transitions:
             if transition["rect"].colliderect(Objects.hero.rect):
                 current_room = transition["target"]
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
                 Objects.hero.rect.topleft = transition["player_start"]
                 Objects.hero.hitbox = (transition["player_start"][0], transition["player_start"][1],
                                        Objects.hero.hitbox[2], Objects.hero.hitbox[3])
                 camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 
+        Objects.hero.update()
 
-
-        # Обновление камеры
+        # Обновление камерыaaa
         camera.update(Objects.hero)
 
         # Отрисовка
@@ -232,7 +239,7 @@ def main():
         for enemy_combo in rooms[current_room].enemies:
             if enemy_combo[1]:
                 enemy_combo[0][0].update_animation(0.15)
-                enemy_combo[0][0].update(screen, camera)
+                enemy_combo[0][0].update(screen, camera, rooms[current_room])
                 enemy_combo[0][0].draw(screen, camera)
 
         Objects.hero.draw(screen, camera)

@@ -24,35 +24,36 @@ class Weapon:
         self.length = length
         self.image_file = image_file
         self.character = character
-        self.special_vector = pygame.math.Vector2(0, 0)
         self.angle = 0
         self.rotation = False
         self.direction = "right"
-        self.hero_hitted = False
         self.angle_per_frame = angle_per_frame
+        self.targets = [[]]
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
         im = pygame.image.load(self.image_file)
-        if self.character.facing_right:
-            im = pygame.transform.flip(im, True, False)
+        if self.rotation:
+            if self.direction == "right" or self.direction == "up":
+                im = pygame.transform.flip(im, True, False)
+        else:
+            if self.character.facing_right:
+                im = pygame.transform.flip(im, True, False)
         im = pygame.transform.rotate(im, self.angle)
         rect = im.get_rect()
-        rect = rect.move(self.special_vector)
         rect.center = (coords[0], coords[1])
         screen.blit(im, camera.apply(rect))
 
     def update(self, coords):
-        if not self.hero_hitted:
-            if self.character == Objects.hero:
-                pass
-            else:
+        for i in range(len(self.targets)):
+            character = self.targets[i]
+            if character[1]:
                 for multiplier in [0, 0.5, 1]:
                     x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle))
                     y_proection = coords[1] + int(self.length * multiplier * math.cos(self.angle))
-                    if Objects.hero.is_in_hitbox((x_proection, y_proection)):
-                       Objects.hero.get_damage(self.damage)
-                       self.hero_hitted = True
-                       break
+                    if character[0].is_in_hitbox((x_proection, y_proection)):
+                        character[0].get_damage(self.damage)
+                        character[1] = False
+                        break
         if self.rotation:
             if self.direction == "right":
                 self.angle -= self.angle_per_frame
@@ -81,7 +82,8 @@ class Weapon:
 
     def start_rotation(self):
         self.rotation = True
-        self.hero_hitted = False
+        for character in self.targets:
+            character[1] = True
         if self.direction == "right":
             self.angle = 330
         elif self.direction == "left":
@@ -127,6 +129,11 @@ class BaseCharacter(BaseObject):
     def get_weapon(self, weapon: Weapon):
         self.weapon = weapon
         self.weapon.character = self
+        if self != Objects.hero:
+            self.weapon.targets = [[Objects.hero, False]]
+
+    def get_targets_to_weapon(self, current_room):
+        self.weapon.targets = [[enemy_combo[0][0], enemy_combo[1]] for enemy_combo in current_room.enemies]
 
     def attack(self):
         self.melee_active = True
@@ -147,9 +154,40 @@ class BaseCharacter(BaseObject):
             self.weapon.show(self.weapon_coords(), screen, camera)
 
     def weapon_coords(self) -> Coord:
-        x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
-        y = self.hitbox[1] + int(self.hitbox[3] * 0.6 + self.weapon.length / 2)
-        return x, y
+        if self.weapon.rotation:
+            direction = self.weapon.direction
+            if direction == "right":
+                if self.facing_right:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.7)
+                else:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+                y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+            elif direction == "left":
+                if self.facing_right:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+                else:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.3)
+                y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+            elif direction == "up":
+                if self.facing_right:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+                else:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+                y = self.hitbox[1] + int(self.hitbox[3] * 0.4)
+            else:
+                if self.facing_right:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+                else:
+                    x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+                y = self.hitbox[1] + int(self.hitbox[3] * 0.6)
+            return x, y
+        else:
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.9)
+            return x, y
 
     def get_damage(self, damage: int):
         if self.no_damage_time == 0:
@@ -209,6 +247,28 @@ class Hero(BaseCharacter):
         self.max_dashes = 2  # Максимум рывков за период
         self.dash_window = 3000  # 3 секунды в миллисекундах
         self.cooldown_duration = 10000  # 10 секунд
+
+    def attack(self, keys):
+        if self.weapon is not None:
+            if not self.weapon.rotation:
+                attack = True
+                if keys[pygame.K_RIGHT]:  #
+                    self.weapon.direction = "right"
+                elif keys[pygame.K_LEFT]:  #
+                    self.weapon.direction = "left"
+                elif keys[pygame.K_UP]:  # Вверх
+                    self.weapon.direction = "up"
+                elif keys[pygame.K_DOWN]:  # Вниз
+                    self.weapon.direction = "down"
+                else:
+                    attack = False
+
+                if attack:
+                    self.weapon.start_rotation()
+            else:
+                self.weapon.update(self.weapon_coords())
+
+
 
     def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
@@ -427,11 +487,10 @@ class Hero(BaseCharacter):
         text = font.render(f"{self.current_energy}/{self.max_energy}", True, (0, 0, 0))
         screen.blit(text, (bar_x, bar_y + bar_height + 5))
 
-    def update(self, delta_time):
+    def update(self):
         if self.health <= 0:
-            self.die()
-        else:
-            self.update_animation(delta_time)
+            #self.die()
+            pass
 
     def die(self):
         Objects.hero = None
@@ -455,9 +514,9 @@ class Enemy(BaseCharacter):
         else:
             self.facing_right = False
 
-    def update(self, screen: pygame.surface.Surface, camera, *args, **kwargs):
+    def update(self, screen: pygame.surface.Surface, camera, current_room, *args, **kwargs):
         if self.health <= 0:
-            self.die()
+            self.die(current_room)
         else:
             mode = self.strategy(self, *args, **kwargs)
             mode()
@@ -476,8 +535,12 @@ class Enemy(BaseCharacter):
     def wait(self):
         pass
 
-    def die(self):
-        Objects.enemies.remove(self)
+    def die(self, current_room):
+        for i in range(len(current_room.enemies)):
+            enemy = current_room.enemies[i]
+            if enemy[0][0] == self:
+                current_room.enemies[i][1] = False
+                break
 
     def update_animation(self, delta_time):
         """Обновляет текущий кадр анимации."""
