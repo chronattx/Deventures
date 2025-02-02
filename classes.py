@@ -90,15 +90,32 @@ class Weapon:
                         break
         else:
             x, y = self.character.weapon_coords()
-            for a in range(x - self.length, x + self.length + 1):
-                if Objects.hero.is_in_hitbox((a, y)):
-                    Objects.hero.get_damage(self.damage)
-                    break
+            if self.direction == "right":
+                for a in range(x, x + self.length + 1):
+                    if Objects.hero.is_in_hitbox((a, y)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            if self.direction == "left":
+                for a in range(x - self.length - 1, x):
+                    if Objects.hero.is_in_hitbox((a, y)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            if self.direction == "up":
+                for a in range(y - self.length - 1, y):
+                    if Objects.hero.is_in_hitbox((x, a)):
+                        Objects.hero.get_damage(self.damage)
+                        break
+            else:
+                for a in range(y, y + self.length + 1):
+                    if Objects.hero.is_in_hitbox((x, a)):
+                        Objects.hero.get_damage(self.damage)
+                        break
 
 
 class BaseObject:
     def __init__(self, hitbox: Rect, image_file: str, coords: Coord):
-        self.hitbox = hitbox
+        self.hitbox = pygame.Rect(hitbox[0], hitbox[1], hitbox[2], hitbox[3])
+        print(type(self.hitbox))
         self.image_file = image_file
         self.coords = coords
         self.sprite = pygame.image.load(self.image_file)
@@ -352,9 +369,32 @@ class Hero(BaseCharacter):
     def draw(self, screen: pygame.surface.Surface, camera=None):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
-            #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), camera.apply(health_bar_rect))
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), camera.apply(current_health_rect))
         else:
             screen.blit(self.image, self.rect)
+            # Отрисовка хитбокса
+            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
+            # Отрисовка полоски здоровья
+            health_bar_width = 50
+            health_bar_height = 5
+            health_bar_x = self.rect.centerx - health_bar_width // 2
+            health_bar_y = self.rect.top - 10
+            health_bar_rect = pygame.Rect(health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+            pygame.draw.rect(screen, (255, 0, 0), health_bar_rect)
+            current_health_width = (self.health / self.max_health) * health_bar_width
+            current_health_rect = pygame.Rect(health_bar_x, health_bar_y, current_health_width, health_bar_height)
+            pygame.draw.rect(screen, (0, 255, 0), current_health_rect)
 
     def resize_image(self, new_width, new_height):
         for key in self.animations:
