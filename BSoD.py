@@ -6,7 +6,7 @@ def draw_bsod():
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("Consolas", 35)
     running = True
-    n = 0
+    n = k = 0
 
     try:
         with open("error.txt", "r") as file:
@@ -15,10 +15,6 @@ def draw_bsod():
         running = False
 
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
         if n != len(rows):
             n += 1
             screen.fill((0, 0, 130))
@@ -29,9 +25,14 @@ def draw_bsod():
 
             pygame.display.flip()
             clock.tick(10)
+        elif k == 3:
+            running = False
+        else:
+            k += 1
+            clock.tick(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pygame.init()
     draw_bsod()
     pygame.quit()

@@ -1,5 +1,6 @@
 import pygame
 from typing import Callable
+from BSoD import draw_bsod
 from data_types import Coord, Rect
 import math
 
@@ -427,13 +428,16 @@ class Hero(BaseCharacter):
         text = font.render(f"{self.current_energy}/{self.max_energy}", True, (0, 0, 0))
         screen.blit(text, (bar_x, bar_y + bar_height + 5))
 
-    def update(self, delta_time):
+    def update(self, delta_time, screen, camera):
         if self.health <= 0:
             self.die()
         else:
             self.update_animation(delta_time)
+            self.draw(screen, camera)
+            self.draw_energy_bar(screen)
 
     def die(self):
+        draw_bsod()
         Objects.hero = None
 
 

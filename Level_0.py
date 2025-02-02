@@ -127,7 +127,6 @@ def create_rooms():
 
 # Основной цикл игры
 def main():
-    pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
@@ -169,7 +168,6 @@ def main():
         screen.fill((0, 0, 0))
 
         # Отрисовка интерфейса
-
         mouse_x, mouse_y = pygame.mouse.get_pos()
         pygame.display.set_caption("GoodGame")
         keys = pygame.key.get_pressed()
@@ -219,8 +217,6 @@ def main():
                 camera = Camera(rooms[current_room].width, rooms[current_room].height)
                 break
 
-
-
         # Обновление камеры
         camera.update(Objects.hero)
 
@@ -235,8 +231,11 @@ def main():
                 enemy_combo[0][0].update(screen, camera)
                 enemy_combo[0][0].draw(screen, camera)
 
-        Objects.hero.draw(screen, camera)
-        Objects.hero.draw_energy_bar(screen)
+        Objects.hero.update(0, screen, camera)
+
+        if Objects.hero is None:
+            break
+
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
@@ -254,7 +253,8 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()
 
 if __name__ == "__main__":
+    pygame.init()
     main()
+    pygame.quit()
