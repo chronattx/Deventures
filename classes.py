@@ -9,10 +9,16 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
 class GameObject:
-    def __init__(self, image_path, x, y):
-        self.image_path = image_path  # Сохраняем путь к изображению
+    def __init__(self, image_path, x, y, collision_offset=(0, 0), collision_size=None):
+        self.image_path = image_path
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
+
+        # Хитбокс для коллизий
+        self.collision_rect = self.rect.copy()
+        if collision_size:
+            self.collision_rect.size = collision_size
+        self.collision_rect.move_ip(collision_offset)
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
@@ -315,8 +321,8 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси X
         for obj in objects:
-            if self.rect.colliderect(obj):
-                # Если есть коллизия, отменяем перемещение по X
+            if self.rect.colliderect(obj.collision_rect):
+                # Обработка коллизии
                 self.rect.x -= dx
                 dx_not_cancelled = False
                 break
@@ -336,10 +342,10 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси Y
         for obj in objects:
-            if self.rect.colliderect(obj):
-                # Если есть коллизия, отменяем перемещение по Y
-                self.rect.y -= dy
-                dy_not_cancelled = False
+            if self.rect.colliderect(obj.collision_rect):
+                # Обработка коллизии
+                self.rect.x -= dy
+                dx_not_cancelled = False
                 break
 
         if dy_not_cancelled:
@@ -487,20 +493,162 @@ class Enemy(BaseCharacter):
     def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, strategy: Callable, animations, animation_speed):
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
         self.strategy = strategy
+        self.animations = animations
+        self.current_animation = "run"
+        self.current_frame = 0
+        self.animation_speed = 0.10
+        self.time_since_last_frame = 0
+        self.current_path = []
+        self.search_radius = 300
+        self.stuck_timer = 0
+        self.last_direction = pygame.Vector2(0, 0)
+        self.target_angle = 0
 
-    def move(self, delta: Coord):
-        self.coords = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1])
-        self.update_hitbox(delta)
-        if delta[0] >= 0:
-            self.facing_right = True
+    def move(self, delta: tuple, walls: list, objects: list):
+        dx, dy = delta
+        original_pos = self.hitbox.topleft
+
+        # Движение по X
+        self.hitbox.x += dx
+        collision = False
+        for wall in walls:
+            if self.hitbox.colliderect(wall):
+                collision = True
+                break
+        for obj in objects:
+            if self.hitbox.colliderect(obj.collision_rect):
+                collision = True
+                break
+        if collision:
+            self.hitbox.x = original_pos[0]
+            dx = 0
+
+        # Движение по Y
+        self.hitbox.y += dy
+        collision = False
+        for wall in walls:
+            if self.hitbox.colliderect(wall):
+                collision = True
+                break
+        for obj in objects:
+            if self.hitbox.colliderect(obj.collision_rect):
+                collision = True
+                break
+        if collision:
+            self.hitbox.y = original_pos[1]
+            dy = 0
+
+        self.last_direction = pygame.Vector2(dx, dy).normalize() if (dx, dy) != (0, 0) else self.last_direction
+        self.update_rotation(dx, dy)
+
+    def update_rotation(self, dx, dy):
+        target_angle = math.degrees(math.atan2(-dy, dx)) % 360
+        angle_diff = (target_angle - self.target_angle + 180) % 360 - 180
+        self.target_angle += angle_diff * 0.1
+
+    def go_to_hero(self, target_pos: tuple, walls: list, objects: list):
+        if pygame.time.get_ticks() - self.stuck_timer < 1000:
+            return
+
+        if pygame.time.get_ticks() % 500 < 50:
+            self.current_path = self.find_simple_path(
+                self.hitbox.center,
+                target_pos,
+                walls,
+                objects
+            )
+
+        if self.current_path:
+            self.follow_path(walls, objects)
         else:
-            self.facing_right = False
+            self.basic_ai_movement(target_pos, walls, objects)
+
+    def find_simple_path(self, start, end, walls, objects, max_steps=50):
+        class Node:
+            def __init__(self, pos, parent=None):
+                self.pos = pos
+                self.parent = parent
+                self.g = 0
+                self.h = ((end[0] - pos[0]) ** 2 + (end[1] - pos[1]) ** 2) ** 0.5
+                self.f = self.g + self.h
+
+        open_set = [Node(start)]
+        closed_list = []
+
+        for _ in range(max_steps):
+            if not open_set: break
+
+            current = min(open_set, key=lambda x: x.f)
+            if current.h < 50:
+                path = []
+                while current:
+                    path.append(current.pos)
+                    current = current.parent
+                return path[::-1]
+
+            closed_list.append(current)
+            open_set.remove(current)
+
+            for dx, dy in [(50, 0), (-50, 0), (0, 50), (0, -50)]:
+                neighbor = (current.pos[0] + dx, current.pos[1] + dy)
+                if any(n.pos == neighbor for n in closed_list):
+                    continue
+
+                if not self.check_collision(neighbor, walls, objects):
+                    new_node = Node(neighbor, current)
+                    new_node.g = current.g + 50
+                    if not any(n.pos == neighbor and n.f <= new_node.f for n in open_set):
+                        open_set.append(new_node)
+
+        return []
+
+    def check_collision(self, pos, walls, objects):
+        temp_rect = pygame.Rect(
+            pos[0] - self.hitbox.width // 2,
+            pos[1] - self.hitbox.height // 2,
+            self.hitbox.width,
+            self.hitbox.height
+        )
+        return any(temp_rect.colliderect(obj) for obj in walls) or \
+            any(temp_rect.colliderect(obj.collision_rect) for obj in objects)
+
+    def follow_path(self, walls, objects):
+        if len(self.current_path) < 2:
+            self.current_path = []
+            return
+
+        target_point = self.current_path[0]
+        if self.hitbox.collidepoint(target_point):
+            self.current_path.pop(0)
+            return
+
+        direction = pygame.Vector2(target_point) - pygame.Vector2(self.hitbox.center)
+        if direction.length() > 0:
+            self.move(direction.normalize() * self.speed, walls, objects)
+
+    def basic_ai_movement(self, target_pos, walls, objects):
+        to_target = pygame.Vector2(target_pos) - pygame.Vector2(self.hitbox.center)
+        if to_target.length() == 0:
+            return
+
+        avoidance = pygame.Vector2(0, 0)
+        for obj in objects + walls:
+            obstacle_rect = obj.collision_rect if hasattr(obj, 'collision_rect') else obj
+            vec_to_obj = pygame.Vector2(obstacle_rect.center) - self.hitbox.center
+            distance = vec_to_obj.length()
+
+            if 0 < distance < self.search_radius:
+                avoidance += vec_to_obj.normalize() * (1 - distance / self.search_radius) * -1
+
+        direction = (to_target.normalize() + avoidance)
+        if direction.length() > 0:
+            self.move(direction.normalize() * self.speed, walls, objects)
 
     def update(self, screen: pygame.surface.Surface, camera, current_room, *args, **kwargs):
         if self.health <= 0:
             self.die(current_room)
         else:
-            mode = self.strategy(self, *args, **kwargs)
+            mode = self.strategy(self, current_room, *args, **kwargs)
             mode()
             self.draw(screen, camera)
 
@@ -597,12 +745,14 @@ class Room:
         for transition in self.transitions:
             pygame.draw.rect(screen, (255, 0, 0), camera.apply(transition["rect"]), 2)
 
-        # Отображение объектов
-        for obj in self.objects:
-            obj.draw(screen, camera)
-
+        # Отрисовка NPC
         for npc in self.npc:
             npc.draw(screen, camera)
+
+        # Отрисовка врагов
+        for enemy_combo in self.enemies:
+            if enemy_combo[1]:
+                enemy_combo[0][0].draw(screen, camera)
 
     def check_object_click(self, mouse_pos, camera, target_object="Table.png"):
         """ Проверяет, кликнули ли по объекту с заданным изображением, учитывая смещение камеры. """
