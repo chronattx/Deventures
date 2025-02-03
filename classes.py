@@ -118,8 +118,6 @@ class BaseObject:
             image_width, image_height = self.rect.width, self.rect.height
 
         self.image = pygame.transform.scale(self.image, (image_width, image_height))
-
-        print(image_width, image_height)
         self.resize_image(image_width, image_height)
 
         self.hitbox = pygame.Rect(hitbox[0], hitbox[1], self.rect.width, self.rect.height)
