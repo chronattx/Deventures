@@ -32,11 +32,11 @@ def create_rooms():
     room1_npc = [
         NPC(800, 400, "assets/NPC_files/walk1.png")
     ]
-    cura_idle_frames = load_cura_animation_frames("Cura", 1)  # 1 кадра для idle
-    cura_run_frames = load_cura_animation_frames("Cura", 24)  # 24 кадра для run
+    cura_idle_frames = load_cura_animation_frames("assets/animate_enemy/Cura", 1)  # 1 кадра для idle
+    cura_run_frames = load_cura_animation_frames("assets/animate_enemy/Cura", 24)  # 24 кадра для run
 
-    bull_idle_frames = load_losandro_animation_frames("Losandro", 1)  # 1 кадра для idle
-    bull_run_frames = load_losandro_animation_frames("Losandro", 18)
+    bull_idle_frames = load_losandro_animation_frames("assets/animate_enemy/Losandro", 1)  # 1 кадра для idle
+    bull_run_frames = load_losandro_animation_frames("assets/animate_enemy/Losandro", 18)
 
     cura_animations = {
         "idle": cura_idle_frames,
@@ -48,26 +48,29 @@ def create_rooms():
         "run": bull_run_frames,
     }
 
-    cura1 = Enemy(pygame.Rect((800, 400, 102, 170)), "Cura1.png", speed=3, health=50,
+    cura1 = Enemy(pygame.Rect((800, 400, 102, 170)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=3, health=50,
                  strategy=example_strategy,
                  animations=cura_animations, animation_speed=0.30)
-    start_weapon1 = Weapon(5, 79, "Weapons/Bata.png", 5)
-    cura2 = Enemy(pygame.Rect((700, 400, 0, 0)), "Cura1.png", speed=4, health=50,
+    start_weapon1 = Weapon(5, 79, "assets/weapons/Bata.png", 5)
+    cura2 = Enemy(pygame.Rect((700, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=4, health=50,
                   strategy=example_strategy,
                   animations=cura_animations, animation_speed=0.10)
-    start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(pygame.Rect((600, 400, 0, 0)), "Cura1.png", speed=2, health=50,
+    start_weapon2 = Weapon(5, 79, "assets/weapons/Bata.png", 2)
+    cura3 = Enemy(pygame.Rect((600, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=2, health=50,
                   strategy=example_strategy,
                   animations=cura_animations, animation_speed=0.50)
-    bull_sword = Weapon(10, 49, "Stolb.png", 7)
+    start_weapon3 = Weapon(5, 79, "assets/weapons/Bata.png", 10)
+    bull_sword = Weapon(10, 49, "assets/weapons/Stolb.png", 7)
     bull = Enemy(pygame.Rect((600, 600, 300, 300)), "Losandro/Losandro1.png", speed=2, health=25,
                   strategy=example_strategy,
                   animations=bull_animations, animation_speed=0.25)
-    bull_sword2 = Weapon(1, 49, "Stolb.png", 12)
+    bull_sword2 = Weapon(1, 49, "assets/weapons/Stolb.png", 12)
     bull2 = Enemy(pygame.Rect((200, 600, 30, 30)), "Losandro/Losandro1.png", speed=4, health=25,
                  strategy=example_strategy,
                  animations=bull_animations, animation_speed=0.05)
-    start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)
     Objects.enemies.append(cura1)
     Objects.enemies.append(cura2)
     Objects.enemies.append(cura3)
