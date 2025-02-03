@@ -51,26 +51,28 @@ def create_rooms():
     cura1 = Enemy(pygame.Rect((800, 400, 102, 170)), "assets/animate_enemy/Cura/Cura1.png",
                   speed=3, health=50,
                  strategy=example_strategy,
-                 animations=cura_animations, animation_speed=0.30)
+                 animations=cura_animations, animation_speed=0.03)
     start_weapon1 = Weapon(5, 79, "assets/weapons/Bata.png", 5)
     cura2 = Enemy(pygame.Rect((700, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
                   speed=4, health=50,
                   strategy=example_strategy,
-                  animations=cura_animations, animation_speed=0.10)
+                  animations=cura_animations, animation_speed=0.01)
     start_weapon2 = Weapon(5, 79, "assets/weapons/Bata.png", 2)
     cura3 = Enemy(pygame.Rect((600, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
                   speed=2, health=50,
                   strategy=example_strategy,
-                  animations=cura_animations, animation_speed=0.50)
+                  animations=cura_animations, animation_speed=0.05)
     start_weapon3 = Weapon(5, 79, "assets/weapons/Bata.png", 10)
     bull_sword = Weapon(10, 49, "assets/weapons/Stolb.png", 7)
-    bull = Enemy(pygame.Rect((600, 600, 300, 300)), "Losandro/Losandro1.png", speed=2, health=25,
+    bull = Enemy(pygame.Rect((1200, 300, 300, 300)), "Losandro/Losandro1.png",
+                 speed=3, health=25,
                   strategy=example_strategy,
-                  animations=bull_animations, animation_speed=0.25)
+                  animations=bull_animations, animation_speed=0.05)
     bull_sword2 = Weapon(1, 49, "assets/weapons/Stolb.png", 12)
-    bull2 = Enemy(pygame.Rect((200, 600, 30, 30)), "Losandro/Losandro1.png", speed=4, health=25,
+    bull2 = Enemy(pygame.Rect((200, 600, 30, 30)), "Losandro/Losandro1.png",
+                  speed=14, health=25,
                  strategy=example_strategy,
-                 animations=bull_animations, animation_speed=0.05)
+                 animations=bull_animations, animation_speed=0.03)
     Objects.enemies.append(cura1)
     Objects.enemies.append(cura2)
     Objects.enemies.append(cura3)
@@ -170,7 +172,7 @@ def main():
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
     hero_health = 100
-    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations, 0.3)
+    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations, 0.03)
     hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 3)
     Objects.hero.get_weapon(hero_weapon)
 
@@ -262,15 +264,11 @@ def main():
         for enemy_combo in rooms[current_room].enemies:
             if enemy_combo[1] and Objects.hero is not None:
                 enemy = enemy_combo[0][0]
-                enemy.update_animation(clock.get_time() / 1000)
-                enemy.go_to_hero(
-                    Objects.hero.hitbox.center,
-                    rooms[current_room].walls,
-                    rooms[current_room].objects
-                )
-                enemy.draw(screen, camera)
+                enemy.update(screen=screen, camera=camera, current_room=rooms[current_room],
+                             target_pos=Objects.hero.hitbox.center, walls_list=rooms[current_room].walls,
+                             objects_list=rooms[current_room].objects, delta_time=clock.get_time() / 1000)
 
-        Objects.hero.update(0, screen, camera)
+        Objects.hero.update(clock.get_time() / 1000, screen, camera)
 
         if Objects.hero is None:
             break

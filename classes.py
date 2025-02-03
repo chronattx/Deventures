@@ -1,7 +1,7 @@
 import pygame
 from typing import Callable
 from BSoD import draw_bsod
-from data_types import Coord
+from data_types import Coord, Rect
 import math
 
 
@@ -9,24 +9,24 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
 class GameObject:
-    def __init__(self, image_path, x, y, collision_offset=(0, 0), collision_size=None):
+    def __init__(self, image_path, x, y):
         self.image_path = image_path
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
-        # Хитбокс для коллизий
-        self.collision_rect = self.rect.copy()
-        if collision_size:
-            self.collision_rect.size = collision_size
-        self.collision_rect.move_ip(collision_offset)
+        # Используем self.rect как хитбокс для коллизий
+        self.collision_rect = self.rect
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
+        # Для отладки коллизий можно отрисовать хитбокс
+        pygame.draw.rect(screen, (0, 255, 0), camera.apply(self.collision_rect), 1)
+
 
 
 
 class Weapon:
-    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: str, character=None):
+    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None):
         self.damage = damage
         self.length = length
         self.image_file = image_file
@@ -108,7 +108,7 @@ class BaseObject:
         self.original_image = pygame.image.load(image_file)
         self.image = self.original_image
 
-        self.facing_right = True
+        self.facing_right = False
         self.animations = {}
         for key in animations:
             self.animations[key] = []
@@ -184,7 +184,7 @@ class BaseCharacter(BaseObject):
     def get_targets_to_weapon(self, current_room):
         self.weapon.targets = [[enemy_combo[0][0], enemy_combo[1]] for enemy_combo in current_room.enemies]
 
-    def attack(self):
+    def attack(self, *args):
         if self.weapon is not None:
             if not self.weapon.rotation:
                 self.weapon.start_rotation()
@@ -282,9 +282,7 @@ class Hero(BaseCharacter):
             else:
                 self.weapon.update(self.weapon_coords())
 
-
-
-    def move(self, keys, walls: list[pygame.Rect], objects: list[pygame.Rect], delta_time):
+    def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
 
         # Обработка нажатий клавиш
@@ -321,8 +319,8 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси X
         for obj in objects:
-            if self.rect.colliderect(obj.collision_rect):
-                # Обработка коллизии
+            if self.rect.colliderect(obj):
+                # Если есть коллизия, отменяем перемещение по X
                 self.rect.x -= dx
                 dx_not_cancelled = False
                 break
@@ -342,10 +340,10 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси Y
         for obj in objects:
-            if self.rect.colliderect(obj.collision_rect):
-                # Обработка коллизии
-                self.rect.x -= dy
-                dx_not_cancelled = False
+            if self.rect.colliderect(obj):
+                # Если есть коллизия, отменяем перемещение по Y
+                self.rect.y -= dy
+                dy_not_cancelled = False
                 break
 
         if dy_not_cancelled:
@@ -493,11 +491,6 @@ class Enemy(BaseCharacter):
     def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, strategy: Callable, animations, animation_speed):
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
         self.strategy = strategy
-        self.animations = animations
-        self.current_animation = "run"
-        self.current_frame = 0
-        self.animation_speed = 0.10
-        self.time_since_last_frame = 0
         self.current_path = []
         self.search_radius = 300
         self.stuck_timer = 0
@@ -522,6 +515,11 @@ class Enemy(BaseCharacter):
         if collision:
             self.hitbox.x = original_pos[0]
             dx = 0
+
+        if dx > 0:
+            self.facing_right = True
+        elif dx < 0:
+            self.facing_right = False
 
         # Движение по Y
         self.hitbox.y += dy
@@ -569,7 +567,7 @@ class Enemy(BaseCharacter):
                 self.pos = pos
                 self.parent = parent
                 self.g = 0
-                self.h = ((end[0] - pos[0]) ** 2 + (end[1] - pos[1]) ** 2) ** 0.5
+                self.h = ((int(end[0]) - int(pos[0])) ** 2 + (int(end[1]) - int(pos[1])) ** 2) ** 0.5
                 self.f = self.g + self.h
 
         open_set = [Node(start)]
@@ -644,25 +642,20 @@ class Enemy(BaseCharacter):
         if direction.length() > 0:
             self.move(direction.normalize() * self.speed, walls, objects)
 
-    def update(self, screen: pygame.surface.Surface, camera, current_room, *args, **kwargs):
+    def update(self, screen: pygame.surface.Surface, camera, current_room,
+               target_pos, walls_list, objects_list, delta_time):
         if self.health <= 0:
             self.die(current_room)
         else:
-            mode = self.strategy(self, current_room, *args, **kwargs)
-            mode()
+            mode = self.strategy(self)
+            mode(target_pos, walls_list, objects_list)
+            self.update_animation(delta_time)
             self.draw(screen, camera)
 
-    def go_to_hero(self):
-        x1, y1 = self.hitbox.center
-        x2, y2 = Objects.hero.coords
-        k = self.speed / (((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5 + 0.0000001)
-        distance = (int(k * (x2 - x1)), int(k * (y2 - y1)))
-        self.move(distance)
-
-    def run_away(self):
+    def run_away(self, *args):
         pass
 
-    def wait(self):
+    def wait(self, *args):
         pass
 
     def die(self, current_room):
@@ -749,10 +742,8 @@ class Room:
         for npc in self.npc:
             npc.draw(screen, camera)
 
-        # Отрисовка врагов
-        for enemy_combo in self.enemies:
-            if enemy_combo[1]:
-                enemy_combo[0][0].draw(screen, camera)
+        for object in self.objects:
+            object.draw(screen, camera)
 
     def check_object_click(self, mouse_pos, camera, target_object="Table.png"):
         """ Проверяет, кликнули ли по объекту с заданным изображением, учитывая смещение камеры. """
