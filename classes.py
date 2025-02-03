@@ -276,8 +276,6 @@ class Hero(BaseCharacter):
             else:
                 self.weapon.update(self.weapon_coords())
 
-
-
     def move(self, keys, walls: list[pygame.Rect], objects: list[pygame.Rect], delta_time):
         dx, dy = 0, 0
 
@@ -487,6 +485,7 @@ class Enemy(BaseCharacter):
     def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, strategy: Callable, animations, animation_speed):
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
         self.strategy = strategy
+        self.death = 0
 
     def move(self, delta: Coord):
         self.coords = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1])
@@ -496,13 +495,14 @@ class Enemy(BaseCharacter):
         else:
             self.facing_right = False
 
-    def update(self, screen: pygame.surface.Surface, camera, current_room, *args, **kwargs):
+    def update(self, screen: pygame.surface.Surface, camera, *args, **kwargs):
         if self.health <= 0:
-            self.die(current_room)
+            if not self.death:
+                self.die()
         else:
             mode = self.strategy(self, *args, **kwargs)
             mode()
-            self.draw(screen, camera)
+        self.draw(screen, camera)
 
     def go_to_hero(self):
         x1, y1 = self.hitbox.center
@@ -517,12 +517,38 @@ class Enemy(BaseCharacter):
     def wait(self):
         pass
 
-    def die(self, current_room):
-        for i in range(len(current_room.enemies)):
-            enemy = current_room.enemies[i]
-            if enemy[0][0] == self:
-                current_room.enemies[i][1] = False
-                break
+    def die(self):
+        def new_size(src_width, src_height, target_width, target_height):
+            if src_width == target_width or src_height == target_height:
+                return target_width, target_height
+
+            src_aspect_ratio = src_width / src_height
+            target_aspect_ratio = target_width / target_height
+
+            if src_aspect_ratio == target_aspect_ratio:
+                return target_width, target_height
+
+            new_width = target_width
+            new_height = target_width / src_aspect_ratio
+
+            if new_height > target_height:
+                new_width = new_height * target_aspect_ratio
+                new_height = target_height
+            elif new_height < target_height:
+                new_width = target_width
+                new_height = new_width / src_aspect_ratio
+
+            return int(new_width), int(new_height)
+
+        self.image_file = "Bulber/Bulber.png"
+        image = pygame.image.load(self.image_file)
+        self.image = pygame.transform.scale(image, new_size(self.hitbox.width, self.hitbox.height, *image.get_size()))
+        self.weapon = None
+        self.death = 1
+
+    def update_animation(self, delta_time):
+        if not self.death:
+            super().update_animation(delta_time)
 
 
 class Peaceful(BaseCharacter):

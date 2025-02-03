@@ -262,7 +262,7 @@ def main():
         for enemy_combo in rooms[current_room].enemies:
             if enemy_combo[1]:
                 enemy_combo[0][0].update_animation(0.15)
-                enemy_combo[0][0].update(screen, camera, rooms[current_room])
+                enemy_combo[0][0].update(screen, camera)
 
         Objects.hero.update(0, screen, camera)
 
