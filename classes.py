@@ -1,7 +1,7 @@
 import pygame
 from typing import Callable
 from BSoD import draw_bsod
-from data_types import Coord
+from data_types import Coord, Rect
 import math
 
 
@@ -9,19 +9,19 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
 class GameObject:
-    def __init__(self, image_path, x, y, collision_offset=(0, 0), collision_size=None):
+    def __init__(self, image_path, x, y):
         self.image_path = image_path
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
-        # Хитбокс для коллизий
-        self.collision_rect = self.rect.copy()
-        if collision_size:
-            self.collision_rect.size = collision_size
-        self.collision_rect.move_ip(collision_offset)
+        # Используем self.rect как хитбокс для коллизий
+        self.collision_rect = self.rect
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
+        # Для отладки коллизий можно отрисовать хитбокс
+        pygame.draw.rect(screen, (0, 255, 0), camera.apply(self.collision_rect), 1)
+
 
 
 
@@ -278,7 +278,7 @@ class Hero(BaseCharacter):
 
 
 
-    def move(self, keys, walls: list[pygame.Rect], objects: list[pygame.Rect], delta_time):
+    def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
 
         # Обработка нажатий клавиш
@@ -315,8 +315,8 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси X
         for obj in objects:
-            if self.rect.colliderect(obj.collision_rect):
-                # Обработка коллизии
+            if self.rect.colliderect(obj):
+                # Если есть коллизия, отменяем перемещение по X
                 self.rect.x -= dx
                 dx_not_cancelled = False
                 break
@@ -336,10 +336,10 @@ class Hero(BaseCharacter):
 
         # Проверка коллизий с объектами по оси Y
         for obj in objects:
-            if self.rect.colliderect(obj.collision_rect):
-                # Обработка коллизии
-                self.rect.x -= dy
-                dx_not_cancelled = False
+            if self.rect.colliderect(obj):
+                # Если есть коллизия, отменяем перемещение по Y
+                self.rect.y -= dy
+                dy_not_cancelled = False
                 break
 
         if dy_not_cancelled:

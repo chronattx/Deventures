@@ -248,6 +248,9 @@ def main():
         if Objects.hero is None:
             break
 
+        for dec in rooms[current_room].objects:
+            dec.draw(screen, camera)
+
         for npcs in rooms[current_room].npc:
             npcs.draw(screen, camera)  # Отрисовка НПС
         dialog_box.draw(screen)   # Отрисовка диалогового окна
