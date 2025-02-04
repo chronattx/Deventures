@@ -20,7 +20,7 @@ class GameObject:
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
         # Для отладки коллизий можно отрисовать хитбокс
-        pygame.draw.rect(screen, (0, 255, 0), camera.apply(self.collision_rect), 1)
+        #pygame.draw.rect(screen, (0, 255, 0), camera.apply(self.collision_rect), 1)
 
 
 
@@ -89,17 +89,18 @@ class Weapon:
 
     def start_rotation(self):
         self.rotation = True
-        for character in self.targets:
-            character[1] = True
-        if self.direction == "right":
-            self.angle = 330
-        elif self.direction == "left":
-            self.angle = 30
-        elif self.direction == "up":
-            self.angle = 60
-            self.up_attack_bool = False
-        else:
-            self.angle = 120
+        if self.targets != [[]]:
+            for character in self.targets:
+                character[1] = True
+            if self.direction == "right":
+                self.angle = 330
+            elif self.direction == "left":
+                self.angle = 30
+            elif self.direction == "up":
+                self.angle = 60
+                self.up_attack_bool = False
+            else:
+                self.angle = 120
 
 
 class BaseObject:
@@ -156,7 +157,7 @@ class BaseObject:
 
     def draw(self, screen: pygame.surface.Surface, camera):
         rect = self.image.get_rect(topleft=(self.hitbox[0], self.hitbox[1]))
-        pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.hitbox), 2)
+        #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.hitbox), 2)
         screen.blit(self.image, camera.apply(rect))
 
     def resize_image(self, new_width, new_height):
@@ -182,7 +183,7 @@ class BaseCharacter(BaseObject):
             self.weapon.targets = [[Objects.hero, False]]
 
     def get_targets_to_weapon(self, current_room):
-        self.weapon.targets = [[enemy_combo[0][0], enemy_combo[1]] for enemy_combo in current_room.enemies]
+        self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
 
     def attack(self, *args):
         if self.weapon is not None:
@@ -230,6 +231,34 @@ class BaseCharacter(BaseObject):
                 x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
             y = self.hitbox[1] + int(self.hitbox[3] * 0.9)
             return x, y
+
+    def weapon_coords_check(self):
+        direction = self.weapon.direction
+        if direction == "right":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.7)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+        elif direction == "left":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.3)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+        elif direction == "up":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.4)
+        else:
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.6)
+        return x, y
 
     def get_damage(self, damage: int):
         self.health -= damage
@@ -416,7 +445,7 @@ class Hero(BaseCharacter):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
             # Отрисовка хитбокса
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -432,7 +461,7 @@ class Hero(BaseCharacter):
         else:
             screen.blit(self.image, self.rect)
             # Отрисовка хитбокса
-            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
+            #pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -758,9 +787,10 @@ class Room:
 
 class NPC:
     def __init__(self, x, y, image_path):
-        self.rect = pygame.Rect(x, y, 200, 200)
+        #self.rect = pygame.Rect(x, y, 200, 200)
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (200, 200))
+        #self.image = pygame.transform.scale(self.image, (200, 200))
+        self.rect = self.image.get_rect(topleft=(x,y))
         self.following = False
 
     def draw(self, screen, camera):

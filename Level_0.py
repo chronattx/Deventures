@@ -1,5 +1,5 @@
 from classes import *
-from animate_func import load_animation_frames, load_cura_animation_frames, load_losandro_animation_frames
+from animate_func import load_animation_frames
 from Level0_minigame1 import minigame_main
 import pygame
 from strategy import example_strategy
@@ -19,6 +19,7 @@ def create_rooms():
         pygame.Rect(0, 0, 1600, 10),  # Верхняя стена
         pygame.Rect(0, 790, 1600, 10),  # Нижняя стена
         pygame.Rect(0, 0, 10, 350),  # Левая верхняя стена
+        pygame.Rect(-10, 0, 10, 800),  # Особая задняя левая стена (by ZuttoZutto)
         pygame.Rect(0, 450, 10, 350),  # Левая нижняя стена
         pygame.Rect(1590, 0, 10, 800)  # Правая стена
     ]
@@ -26,66 +27,116 @@ def create_rooms():
         {"rect": pygame.Rect(0, 350, 10, 100), "target": "room2", "player_start": (600, 400)}
     ]
     room1_objects = [
-        GameObject('assets/decoration/Table.png', 800, 300)
-
+        GameObject('assets/decoration/Table.png', 800, 300),
+        GameObject('assets/decoration/Surrodo.png', 891, 241),
+        GameObject('assets/decoration/Surrodo.png', 949, 256),
+        GameObject('assets/decoration/Surrodo.png', 1009, 274),
+        GameObject('assets/decoration/Surrodo_inverted.png', 708, 248),
+        GameObject('assets/decoration/Surrodo_inverted.png', 648, 264),
+        GameObject('assets/decoration/Surrodo_inverted.png', 586, 280),
+        GameObject('assets/decoration/Kachabamba.png', 595, 406),
+        GameObject('assets/decoration/Kachabamba.png', 262, 483),
+        GameObject('assets/decoration/Kachabamba.png', 251, 211),
+        GameObject('assets/decoration/Kachabamba.png', 247, 266),
+        GameObject('assets/decoration/Group1.png', 782, 718),
+        GameObject('assets/decoration/Group2.png', 1297, 341),
+        GameObject('assets/decoration/Poppu.png', 1440, 5),
+        GameObject('assets/decoration/Poppu.png', 1500, 37),
+        GameObject('assets/decoration/Poppu.png', 1508, -9)
     ]
     room1_npc = [
-        NPC(800, 400, "assets/NPC_files/walk1.png")
+        NPC(800, 400, "assets/NPC_files/TheCG1.png")
     ]
-    cura_idle_frames = load_cura_animation_frames("assets/animate_enemy/Cura", 1)  # 1 кадра для idle
-    cura_run_frames = load_cura_animation_frames("assets/animate_enemy/Cura", 24)  # 24 кадра для run
+    cura_idle_frames = load_animation_frames("assets/animate_enemy/Cura", 1, "Cura")  # 1 кадра для idle
+    cura_run_frames = load_animation_frames("assets/animate_enemy/Cura", 24, "Cura")  # 24 кадра для run
 
-    bull_idle_frames = load_losandro_animation_frames("assets/animate_enemy/Losandro", 1)  # 1 кадра для idle
-    bull_run_frames = load_losandro_animation_frames("assets/animate_enemy/Losandro", 18)
+    losandro_idle_frames = load_animation_frames("assets/animate_enemy/Losandro", 1, "Losandro")  # 1 кадра для idle
+    losandro_run_frames = load_animation_frames("assets/animate_enemy/Losandro", 18, "Losandro")
+
+    spitsa_idle_frames = load_animation_frames("assets/animate_enemy/Spitsa", 1, "Spitsa")  # 1 кадра для idle
+    spitsa_run_frames = load_animation_frames("assets/animate_enemy/Spitsa", 1, "Spitsa")
 
     cura_animations = {
         "idle": cura_idle_frames,
         "run": cura_run_frames,
     }
 
-    bull_animations = {
-        "idle": bull_idle_frames,
-        "run": bull_run_frames,
+    losandro_animations = {
+        "idle": losandro_idle_frames,
+        "run": losandro_run_frames,
     }
 
-    cura1 = Enemy(pygame.Rect((800, 400, 102, 170)), "assets/animate_enemy/Cura/Cura1.png",
-                  speed=3, health=50,
+    spitsa_animations = {
+        "idle": spitsa_idle_frames,
+        "run": spitsa_run_frames,
+    }
+
+    wave1_room1_cura = Enemy(pygame.Rect((800, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=3, health=8,
                  strategy=example_strategy,
                  animations=cura_animations, animation_speed=0.03)
-    start_weapon1 = Weapon(5, 79, "assets/weapons/Bata.png", 5)
-    cura2 = Enemy(pygame.Rect((700, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
-                  speed=4, health=50,
+    wave1_room1_cura_bata = Weapon(5, 74, "assets/weapons/Bata.png", 3)
+    wave2_room1_cura = Enemy(pygame.Rect((695, 471, 77, 128)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=2, health=12,
                   strategy=example_strategy,
-                  animations=cura_animations, animation_speed=0.01)
-    start_weapon2 = Weapon(5, 79, "assets/weapons/Bata.png", 2)
-    cura3 = Enemy(pygame.Rect((600, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
-                  speed=2, health=50,
+                  animations=cura_animations, animation_speed=0.035)
+    wave2_room1_cura_bata = Weapon(5, 70,
+                                   "assets/weapons/Bata.png", 5)
+    wave2_room1_spitsa = Enemy(pygame.Rect((927, 458, 0, 0)), "assets/animate_enemy/Spitsa/Spitsa1.png",
+                  speed=8, health=5,
+                  strategy=example_strategy,
+                  animations=spitsa_animations, animation_speed=0.05)
+
+    wave2_room1_spitsa_flowswordyellow = Weapon(6, 100,
+                                                "assets/weapons/FlowSwordYellow.png", 10)
+    wave3_room1_spitsa1 = Enemy(pygame.Rect((1252, 28, 45, 101)), "assets/animate_enemy/Spitsa/Spitsa1.png",
+                               speed=7, health=4,
+                               strategy=example_strategy,
+                               animations=spitsa_animations, animation_speed=0.05)
+
+    wave3_room1_spitsa1_bata = Weapon(5, 65,
+                                                "assets/weapons/Bata.png", 13)
+    wave3_room1_spitsa2 = Enemy(pygame.Rect((39, 30, 86, 189)), "assets/animate_enemy/Spitsa/Spitsa1.png",
+                                speed=16, health=14,
+                                strategy=example_strategy,
+                                animations=spitsa_animations, animation_speed=0.05)
+
+    wave3_room1_spitsa2_blobsword = Weapon(10, 116,
+                                                 "assets/weapons/BlobsKneghtSword.png", 7)
+    wave3_room1_spitsa3 = Enemy(pygame.Rect((1412, 630, 0, 0)), "assets/animate_enemy/Spitsa/Spitsa1.png",
+                                speed=9, health=6,
+                                strategy=example_strategy,
+                                animations=spitsa_animations, animation_speed=0.05)
+
+    wave3_room1_spitsa3_flowswordbrownie = Weapon(7, 103,
+                                                 "assets/weapons/FlowSwordBrownie.png", 9)
+    wave3_room1_cura = Enemy(pygame.Rect((78, 672, 26, 43)), "assets/animate_enemy/Cura/Cura1.png",
+                  speed=3, health=10,
                   strategy=example_strategy,
                   animations=cura_animations, animation_speed=0.05)
-    start_weapon3 = Weapon(5, 79, "assets/weapons/Bata.png", 10)
-    bull_sword = Weapon(10, 49, "assets/weapons/Stolb.png", 7)
-    bull = Enemy(pygame.Rect((1200, 300, 300, 300)), "Losandro/Losandro1.png",
-                 speed=3, health=25,
-                  strategy=example_strategy,
-                  animations=bull_animations, animation_speed=0.05)
-    bull_sword2 = Weapon(1, 49, "assets/weapons/Stolb.png", 12)
-    bull2 = Enemy(pygame.Rect((200, 600, 30, 30)), "Losandro/Losandro1.png",
-                  speed=14, health=25,
-                 strategy=example_strategy,
-                 animations=bull_animations, animation_speed=0.03)
-    Objects.enemies.append(cura1)
-    Objects.enemies.append(cura2)
-    Objects.enemies.append(cura3)
-    Objects.enemies.append(bull)
-    Objects.enemies.append(bull2)
-    cura1.get_weapon(start_weapon1)
-    cura2.get_weapon(start_weapon2)
-    cura3.get_weapon(start_weapon3)
-    bull.get_weapon(bull_sword)
-    bull2.get_weapon(bull_sword2)
+    wave3_room1_cura_peruza = Weapon(25, 100,
+                                   "assets/weapons/Peruza.png", 2)
+    Objects.enemies.append(wave1_room1_cura)
+    Objects.enemies.append(wave2_room1_cura)
+    Objects.enemies.append(wave2_room1_spitsa)
+    Objects.enemies.append(wave3_room1_spitsa1)
+    Objects.enemies.append(wave3_room1_spitsa2)
+    Objects.enemies.append(wave3_room1_spitsa3)
+    Objects.enemies.append(wave3_room1_cura)
+    wave1_room1_cura.get_weapon(wave1_room1_cura_bata)
+    wave2_room1_cura.get_weapon(wave2_room1_cura_bata)
+    wave2_room1_spitsa.get_weapon(wave2_room1_spitsa_flowswordyellow)
+    wave3_room1_spitsa1.get_weapon(wave3_room1_spitsa1_bata)
+    wave3_room1_spitsa2.get_weapon(wave3_room1_spitsa2_blobsword)
+    wave3_room1_spitsa3.get_weapon(wave3_room1_spitsa3_flowswordbrownie)
+    wave3_room1_cura.get_weapon(wave3_room1_cura_peruza)
     room1_enemies = [
-        [[cura1, start_weapon1], False], [[cura2, start_weapon2], False], [[cura3, start_weapon3], False],
-        [[bull, bull_sword], False], [[bull2, bull_sword2], False]
+        [[wave1_room1_cura, wave1_room1_cura_bata], False], [[wave2_room1_cura, wave2_room1_cura_bata], False],
+        [[wave2_room1_spitsa, wave2_room1_spitsa_flowswordyellow], False],
+        [[wave3_room1_spitsa1, wave3_room1_spitsa1_bata], False],
+        [[wave3_room1_spitsa2, wave3_room1_spitsa2_blobsword], False],
+        [[wave3_room1_spitsa3, wave3_room1_spitsa3_flowswordbrownie], False],
+        [[wave3_room1_cura, wave3_room1_cura_peruza], False]
     ]
     room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
     rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls,
@@ -160,34 +211,40 @@ def main():
     clock = pygame.time.Clock()
 
     # Инициализация игрока и комнат
-    idle_frames = load_animation_frames("assets/animate_hero", 11)  # 3 кадра для idle
-    run_frames = load_animation_frames("assets/animate_hero", 1)  # 4 кадра для run
+    idle_frames = load_animation_frames("assets/animate_hero", 11, "MairouMotion")  # 3 кадра для idle
+    run_frames = load_animation_frames("assets/animate_hero", 1, "MairouMotion")  # 4 кадра для run
 
     animations = {
         "idle": idle_frames,
         "run": run_frames,
     }
 
-    hero_hitbox = pygame.Rect(600, 400, 0, 0)
+    hero_hitbox = pygame.Rect(700, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
-    hero_health = 100
-    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations, 0.03)
-    hero_weapon = Weapon(5, 93, "Weapons/SantaliderSword.png", 3)
+    hero_health = 200
+    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
+                        animations, 0.03)
+    hero_weapon = Weapon(1, 93, "Weapons/SantaliderSword.png", 7)
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
     current_room = "room1"
+    camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     Objects.hero.get_targets_to_weapon(rooms["room1"])
-    camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     # Создаем НПС
     dialog_box = DialogBox(rooms[current_room].text)
 
     running = True
-    cura_summoned = False
     cooldown_font = pygame.font.Font(None, 32)
+
+    #Волны
+    room1_cleared = False
+    wave1_room1 = False
+    wave2_room1 = False
+    wave3_room1 = False
 
     while running:
         # Обновление перезарядки
@@ -222,16 +279,36 @@ def main():
                         break
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and result == 'yes':
-                        npc.following = True
+                        wave1_room1 = True
                         rooms[current_room].enemies[0][1] = True
-                        rooms[current_room].enemies[1][1] = True
-                        rooms[current_room].enemies[2][1] = True
-                        rooms[current_room].enemies[3][1] = True
-                        rooms[current_room].enemies[4][1] = True
+                        Objects.hero.get_targets_to_weapon(rooms[current_room])
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
                         if game_result:
                             pass
+
+        if wave1_room1 and not rooms[current_room].enemies[0][1]:
+            wave2_room1 = True
+            rooms[current_room].enemies[1][1] = True
+            rooms[current_room].enemies[2][1] = True
+            Objects.hero.get_targets_to_weapon(rooms[current_room])
+            wave1_room1 = False
+        if wave2_room1 and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
+            wave3_room1 = True
+            rooms[current_room].enemies[3][1] = True
+            rooms[current_room].enemies[4][1] = True
+            rooms[current_room].enemies[5][1] = True
+            rooms[current_room].enemies[6][1] = True
+            Objects.hero.get_targets_to_weapon(rooms[current_room])
+            wave2_room1 = False
+        if (wave3_room1 and not rooms[current_room].enemies[3][1]
+                and not rooms[current_room].enemies[4][1]
+                and not rooms[current_room].enemies[5][1]
+                and not rooms[current_room].enemies[6][1]):
+            room1_cleared = True
+
+
+
 
         # Движение игрока
         Objects.hero.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
@@ -243,15 +320,16 @@ def main():
                 npcs.rect.center = Objects.hero.rect.center
 
         # Проверка переходов между комнатами
-        for transition in rooms[current_room].transitions:
-            if transition["rect"].colliderect(Objects.hero.rect):
-                current_room = transition["target"]
-                Objects.hero.get_targets_to_weapon(rooms[current_room])
-                Objects.hero.rect.topleft = transition["player_start"]
-                Objects.hero.hitbox = (transition["player_start"][0], transition["player_start"][1],
-                                       Objects.hero.hitbox[2], Objects.hero.hitbox[3])
-                camera = Camera(rooms[current_room].width, rooms[current_room].height)
-                break
+        if current_room == "room1" and room1_cleared:
+            for transition in rooms[current_room].transitions:
+                if transition["rect"].colliderect(Objects.hero.rect):
+                    current_room = transition["target"]
+                    Objects.hero.get_targets_to_weapon(rooms[current_room])
+                    Objects.hero.rect.topleft = transition["player_start"]
+                    Objects.hero.hitbox = (transition["player_start"][0], transition["player_start"][1],
+                                           Objects.hero.hitbox[2], Objects.hero.hitbox[3])
+                    camera = Camera(rooms[current_room].width, rooms[current_room].height)
+                    break
 
         # Обновление камеры
         camera.update(Objects.hero)
@@ -295,3 +373,4 @@ if __name__ == "__main__":
     pygame.init()
     main()
     pygame.quit()
+
