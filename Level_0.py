@@ -56,6 +56,9 @@ def create_rooms():
     spitsa_idle_frames = load_animation_frames("assets/animate_enemy/Spitsa", 1, "Spitsa")  # 1 кадра для idle
     spitsa_run_frames = load_animation_frames("assets/animate_enemy/Spitsa", 1, "Spitsa")
 
+    totemole_idle_frames = load_animation_frames("assets/animate_enemy/Totemole", 1, "Totemole")  # 1 кадра для idle
+    totemole_run_frames = load_animation_frames("assets/animate_enemy/Totemole", 13, "Totemole")
+
     cura_animations = {
         "idle": cura_idle_frames,
         "run": cura_run_frames,
@@ -69,6 +72,11 @@ def create_rooms():
     spitsa_animations = {
         "idle": spitsa_idle_frames,
         "run": spitsa_run_frames,
+    }
+
+    totemole_animations = {
+        "idle": totemole_idle_frames,
+        "run": totemole_run_frames,
     }
 
     wave1_room1_cura = Enemy(pygame.Rect((800, 400, 0, 0)), "assets/animate_enemy/Cura/Cura1.png",
@@ -116,6 +124,42 @@ def create_rooms():
                   animations=cura_animations, animation_speed=0.05)
     wave3_room1_cura_peruza = Weapon(25, 100,
                                    "assets/weapons/Peruza.png", 2)
+    wave4_room1_totemole1 = Enemy(pygame.Rect((1460, 700, 126, 136)), "assets/animate_enemy/Totemole/Totemole1.png",
+                             speed=13, health=25,
+                             strategy=example_strategy,
+                             animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole1_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
+    wave4_room1_totemole2 = Enemy(pygame.Rect((1360, 700, 95, 102)), "assets/animate_enemy/Totemole/Totemole1.png",
+                                  speed=12, health=5,
+                                  strategy=example_strategy,
+                                  animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole2_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
+    wave4_room1_totemole3 = Enemy(pygame.Rect((1260, 700, 79, 85)), "assets/animate_enemy/Totemole/Totemole1.png",
+                                  speed=11, health=5,
+                                  strategy=example_strategy,
+                                  animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole3_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
+    wave4_room1_totemole4 = Enemy(pygame.Rect((1160, 700, 0, 0)), "assets/animate_enemy/Totemole/Totemole1.png",
+                                  speed=10, health=5,
+                                  strategy=example_strategy,
+                                  animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole4_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
+    wave4_room1_totemole5 = Enemy(pygame.Rect((1060, 700, 0, 0)), "assets/animate_enemy/Totemole/Totemole1.png",
+                                  speed=9, health=5,
+                                  strategy=example_strategy,
+                                  animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole5_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
+    wave4_room1_totemole6 = Enemy(pygame.Rect((960, 700, 0, 0)), "assets/animate_enemy/Totemole/Totemole1.png",
+                                  speed=9, health=5,
+                                  strategy=example_strategy,
+                                  animations=totemole_animations, animation_speed=0.05)
+    wave4_room1_totemole6_washitte = Weapon(2, 20,
+                                            "assets/weapons/Washitte.png", 20)
     Objects.enemies.append(wave1_room1_cura)
     Objects.enemies.append(wave2_room1_cura)
     Objects.enemies.append(wave2_room1_spitsa)
@@ -123,6 +167,12 @@ def create_rooms():
     Objects.enemies.append(wave3_room1_spitsa2)
     Objects.enemies.append(wave3_room1_spitsa3)
     Objects.enemies.append(wave3_room1_cura)
+    Objects.enemies.append(wave4_room1_totemole1)
+    Objects.enemies.append(wave4_room1_totemole2)
+    Objects.enemies.append(wave4_room1_totemole3)
+    Objects.enemies.append(wave4_room1_totemole4)
+    Objects.enemies.append(wave4_room1_totemole5)
+    Objects.enemies.append(wave4_room1_totemole6)
     wave1_room1_cura.get_weapon(wave1_room1_cura_bata)
     wave2_room1_cura.get_weapon(wave2_room1_cura_bata)
     wave2_room1_spitsa.get_weapon(wave2_room1_spitsa_flowswordyellow)
@@ -130,13 +180,25 @@ def create_rooms():
     wave3_room1_spitsa2.get_weapon(wave3_room1_spitsa2_blobsword)
     wave3_room1_spitsa3.get_weapon(wave3_room1_spitsa3_flowswordbrownie)
     wave3_room1_cura.get_weapon(wave3_room1_cura_peruza)
+    wave4_room1_totemole1.get_weapon(wave4_room1_totemole1_washitte)
+    wave4_room1_totemole2.get_weapon(wave4_room1_totemole2_washitte)
+    wave4_room1_totemole3.get_weapon(wave4_room1_totemole3_washitte)
+    wave4_room1_totemole4.get_weapon(wave4_room1_totemole4_washitte)
+    wave4_room1_totemole5.get_weapon(wave4_room1_totemole5_washitte)
+    wave4_room1_totemole6.get_weapon(wave4_room1_totemole6_washitte)
     room1_enemies = [
         [[wave1_room1_cura, wave1_room1_cura_bata], False], [[wave2_room1_cura, wave2_room1_cura_bata], False],
         [[wave2_room1_spitsa, wave2_room1_spitsa_flowswordyellow], False],
         [[wave3_room1_spitsa1, wave3_room1_spitsa1_bata], False],
         [[wave3_room1_spitsa2, wave3_room1_spitsa2_blobsword], False],
         [[wave3_room1_spitsa3, wave3_room1_spitsa3_flowswordbrownie], False],
-        [[wave3_room1_cura, wave3_room1_cura_peruza], False]
+        [[wave3_room1_cura, wave3_room1_cura_peruza], False],
+        [[wave4_room1_totemole1, wave4_room1_totemole1_washitte], False],
+        [[wave4_room1_totemole2, wave4_room1_totemole2_washitte], False],
+        [[wave4_room1_totemole3, wave4_room1_totemole3_washitte], False],
+        [[wave4_room1_totemole4, wave4_room1_totemole4_washitte], False],
+        [[wave4_room1_totemole5, wave4_room1_totemole5_washitte], False],
+        [[wave4_room1_totemole6, wave4_room1_totemole6_washitte], False],
     ]
     room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
     rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls,
@@ -222,7 +284,7 @@ def main():
     hero_hitbox = pygame.Rect(700, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
-    hero_health = 200
+    hero_health = 700
     Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
                         animations, 0.03)
     hero_weapon = Weapon(1, 93, "Weapons/SantaliderSword.png", 7)
@@ -245,6 +307,7 @@ def main():
     wave1_room1 = False
     wave2_room1 = False
     wave3_room1 = False
+    wave4_room1 = False
 
     while running:
         # Обновление перезарядки
@@ -278,35 +341,55 @@ def main():
                         dialog_box.visible = True
                         break
                     result = dialog_box.handle_click(mouse_pos)
-                    if current_room == "room1" and result == 'yes':
+                    if current_room == "room1" and (result == 'yes' or result == 'no'):
                         wave1_room1 = True
-                        rooms[current_room].enemies[0][1] = True
+                        rooms[current_room].enemies[10][1] = True
                         Objects.hero.get_targets_to_weapon(rooms[current_room])
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
                         if game_result:
                             pass
-
-        if wave1_room1 and not rooms[current_room].enemies[0][1]:
-            wave2_room1 = True
-            rooms[current_room].enemies[1][1] = True
-            rooms[current_room].enemies[2][1] = True
-            Objects.hero.get_targets_to_weapon(rooms[current_room])
-            wave1_room1 = False
-        if wave2_room1 and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
-            wave3_room1 = True
-            rooms[current_room].enemies[3][1] = True
-            rooms[current_room].enemies[4][1] = True
-            rooms[current_room].enemies[5][1] = True
-            rooms[current_room].enemies[6][1] = True
-            Objects.hero.get_targets_to_weapon(rooms[current_room])
-            wave2_room1 = False
-        if (wave3_room1 and not rooms[current_room].enemies[3][1]
-                and not rooms[current_room].enemies[4][1]
-                and not rooms[current_room].enemies[5][1]
-                and not rooms[current_room].enemies[6][1]):
-            room1_cleared = True
-
+        if current_room == "room1":
+            if wave1_room1 and not rooms[current_room].enemies[0][1]:
+                wave2_room1 = True
+                rooms[current_room].enemies[1][1] = True
+                rooms[current_room].enemies[2][1] = True
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+                wave1_room1 = False
+            if wave2_room1 and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
+                wave3_room1 = True
+                rooms[current_room].enemies[3][1] = True
+                rooms[current_room].enemies[4][1] = True
+                rooms[current_room].enemies[5][1] = True
+                rooms[current_room].enemies[6][1] = True
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+                wave2_room1 = False
+            if (wave3_room1 and not rooms[current_room].enemies[3][1] and result == 'yes'
+                    and not rooms[current_room].enemies[4][1]
+                    and not rooms[current_room].enemies[5][1]
+                    and not rooms[current_room].enemies[6][1]):
+                room1_cleared = True
+                wave3_room1 = False
+            elif (wave3_room1 and not rooms[current_room].enemies[3][1]
+                    and not rooms[current_room].enemies[4][1]
+                    and not rooms[current_room].enemies[5][1]
+                    and not rooms[current_room].enemies[6][1]):
+                wave4_room1 = True
+                wave3_room1 = False
+                rooms[current_room].enemies[7][1] = True
+                rooms[current_room].enemies[8][1] = True
+                rooms[current_room].enemies[9][1] = True
+                rooms[current_room].enemies[10][1] = True
+                rooms[current_room].enemies[11][1] = True
+                rooms[current_room].enemies[12][1] = True
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+            if (wave4_room1 and not rooms[current_room].enemies[7][1]
+                    and not rooms[current_room].enemies[8][1]
+                    and not rooms[current_room].enemies[9][1]
+                    and not rooms[current_room].enemies[10][1]
+                    and not rooms[current_room].enemies[11][1]
+                    and not rooms[current_room].enemies[12][1]):
+                room1_cleared = True
 
 
 
