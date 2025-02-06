@@ -55,8 +55,8 @@ class Weapon:
             character = self.targets[i]
             if character[1]:
                 for multiplier in [0, 0.5, 1]:
-                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle))
-                    y_proection = coords[1] + int(self.length * multiplier * math.cos(self.angle))
+                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
+                    y_proection = coords[1] + int(self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
                     if character[0].is_in_hitbox((x_proection, y_proection)):
                         character[0].get_damage(self.damage)
                         character[1] = False

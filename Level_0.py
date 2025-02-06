@@ -2,8 +2,7 @@ from classes import *
 from animate_func import load_animation_frames
 from Level0_minigame1 import minigame_main
 import pygame
-from strategy import example_strategy
-
+from strategy import example_strategy, carusel_strategy
 
 # Размеры экрана
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
@@ -209,16 +208,109 @@ def create_rooms():
     room2_walls = [
         pygame.Rect(0, 0, 800, 10),  # Верхняя стена
         pygame.Rect(0, 790, 350, 10), # Нижняя стена вверх
+        pygame.Rect(0, 800, 950, 10),
         pygame.Rect(450, 790, 350, 10), # Нижняя стена низ
         pygame.Rect(0, 0, 10, 800),  # Левая стена
         pygame.Rect(790, 0, 10, 350),  # Правая верхняя стена
+        pygame.Rect(800, 0, 10, 1000),
         pygame.Rect(790, 450, 10, 350),  # Правая нижняя стена
     ]
     room2_transitions = [
         {"rect": pygame.Rect(790, 350, 10, 100), "target": "room1", "player_start": (50, 400)},  # Вход из комнаты 1
         {"rect": pygame.Rect(350, 790, 100, 10), "target": "room3", "player_start": (500, 50)},  # Выход вниз
     ]
-    rooms["room2"] = Room(room2_width, room2_height, "assets/rooms/room2.png", room2_walls, room2_transitions)
+    room2_objects = [
+        GameObject('assets/decoration/Group4.png', 266, 253)
+    ]
+    room2_npc = [
+
+    ]
+
+    suura_idle_frames = load_animation_frames("assets/animate_enemy/Suura", 1, "Suura")  # 1 кадра для idle
+    suura_run_frames = load_animation_frames("assets/animate_enemy/Suura", 11, "Suura")  # 24 кадра для run
+    cutted_suura_run_frames = load_animation_frames("assets/animate_enemy/Suura", 1, "Suura")
+
+    burryo_idle_frames = load_animation_frames("assets/animate_enemy/Burryo", 1, "Burryo")  # 1 кадра для idle
+    burryo_run_frames = load_animation_frames("assets/animate_enemy/Burryo", 10, "Burryo")  # 24 кадра для run
+
+    suura_animations = {
+        "idle": suura_idle_frames,
+        "run": cutted_suura_run_frames,
+    }
+
+    burryo_animations = {
+        "idle": burryo_idle_frames,
+        "run": burryo_run_frames,
+    }
+
+    carusel_animations = {
+        "idle": [pygame.image.load("assets/decoration/Group4.png").convert_alpha()],
+        "run": [pygame.image.load("assets/decoration/Group4.png").convert_alpha()]
+    }
+
+    wave1_room2_suurafat = Enemy(pygame.Rect((377, 360, 73, 73)), "assets/animate_enemy/Suura/Suura1.png",
+                                  speed=10, health=7,
+                                  strategy=carusel_strategy,
+                                  animations=carusel_animations, animation_speed=0.09)
+    wave1_room2_suurafat_oppaisword = Weapon(95, 240,
+                                            "assets/weapons/OppaiSword.png", 2)
+    wave1_room2_suura = Enemy(pygame.Rect((100, 100, 0, 0)), "assets/animate_enemy/Suura/Suura1.png",
+                                 speed=2, health=5,
+                                 strategy=example_strategy,
+                                 animations=suura_animations, animation_speed=0.09)
+    wave1_room2_suura_flowswordyellow = Weapon(7, 100,
+                                             "assets/weapons/FlowSwordYellow.png", 33)
+    wave1_room2_burryo = Enemy(pygame.Rect((600, 600, 0, 0)), "assets/animate_enemy/Suura/Suura1.png",
+                              speed=8, health=10,
+                              strategy=example_strategy,
+                              animations=burryo_animations, animation_speed=0.01)
+    wave1_room2_burryo_peruza = Weapon(66, 108,
+                                               "assets/weapons/Peruza.png", 4)
+
+    wave2_room2_losandro1 = Enemy(pygame.Rect((600, 600, 0, 0)), "assets/animate_enemy/Losandro/Losandro1.png",
+                               speed=3, health=6,
+                               strategy=example_strategy,
+                               animations=losandro_animations, animation_speed=0.01)
+    wave2_room2_losandro1_blobswordmode2 = Weapon(100, 150,
+                                       "assets/weapons/Peruza.png", 1)
+    wave2_room2_losandro2 = Enemy(pygame.Rect((600, 600, 0, 0)), "assets/animate_enemy/Losandro/Losandro1.png",
+                                  speed=1, health=6,
+                                  strategy=example_strategy,
+                                  animations=losandro_animations, animation_speed=0.01)
+    wave2_room2_losandro2_totemolebata = Weapon(200, 150,
+                                                  "assets/weapons/TotemoleBata.png", 3)
+    wave2_room2_susu = Enemy(pygame.Rect((377, 360, 73, 73)), "assets/animate_enemy/Suura/Suura1.png",
+                                 speed=10, health=5,
+                                 strategy=carusel_strategy,
+                                 animations=carusel_animations, animation_speed=0.09)
+    wave2_room2_susu_surrodo = Weapon(400, 312,
+                                             "assets/weapons/SurrodoSurrodo.png", 1)
+
+    wave1_room2_suurafat.get_weapon(wave1_room2_suurafat_oppaisword)
+    wave1_room2_suura.get_weapon(wave1_room2_suura_flowswordyellow)
+    wave1_room2_burryo.get_weapon(wave1_room2_burryo_peruza)
+    wave2_room2_losandro1.get_weapon(wave2_room2_losandro1_blobswordmode2)
+    wave2_room2_losandro2.get_weapon(wave2_room2_losandro2_totemolebata)
+    wave2_room2_susu.get_weapon(wave2_room2_susu_surrodo)
+
+    Objects.enemies.append(wave1_room2_suurafat)
+    Objects.enemies.append(wave1_room2_suura)
+    Objects.enemies.append(wave1_room2_burryo)
+    Objects.enemies.append(wave2_room2_losandro1)
+    Objects.enemies.append(wave2_room2_losandro2)
+    Objects.enemies.append(wave2_room2_susu)
+
+    room2_enemies = [
+        [[wave1_room2_suurafat, wave1_room2_suurafat_oppaisword], False],
+        [[wave1_room2_suura, wave1_room2_suura_flowswordyellow], False],
+        [[wave1_room2_burryo, wave1_room2_burryo_peruza], False],
+        [[wave2_room2_losandro1, wave2_room2_losandro1_blobswordmode2], False],
+        [[wave2_room2_losandro2, wave2_room2_losandro2_totemolebata], False],
+        [[wave2_room2_susu, wave2_room2_susu_surrodo], False]
+    ]
+    room2_dialog = ''
+    rooms["room2"] = Room(room2_width, room2_height, "assets/rooms/room2.png", room2_walls, room2_transitions, room2_objects, room2_npc, room2_enemies, room2_dialog)
+
 
     # Комната 3
     room3_width, room3_height = 1000, 1000
@@ -284,7 +376,7 @@ def main():
     hero_hitbox = pygame.Rect(700, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
-    hero_health = 700
+    hero_health = 390
     Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
                         animations, 0.03)
     hero_weapon = Weapon(1, 93, "Weapons/SantaliderSword.png", 7)
@@ -303,11 +395,17 @@ def main():
     cooldown_font = pygame.font.Font(None, 32)
 
     #Волны
-    room1_cleared = False
     wave1_room1 = False
     wave2_room1 = False
     wave3_room1 = False
     wave4_room1 = False
+    room1_cleared = False
+
+    give_room2_equipment = False
+
+    wave1_room2 = True #######
+    wave2_room2 = False
+    wave3_room2 = False
 
     while running:
         # Обновление перезарядки
@@ -343,7 +441,7 @@ def main():
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and (result == 'yes' or result == 'no'):
                         wave1_room1 = True
-                        rooms[current_room].enemies[10][1] = True
+                        rooms[current_room].enemies[0][1] = True
                         Objects.hero.get_targets_to_weapon(rooms[current_room])
                     if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
                         game_result = minigame_main()
@@ -390,6 +488,29 @@ def main():
                     and not rooms[current_room].enemies[11][1]
                     and not rooms[current_room].enemies[12][1]):
                 room1_cleared = True
+        elif current_room == "room2":
+            if wave1_room2:
+                if not give_room2_equipment:
+                    Objects.hero.health = 390
+                    room2_hero_weapon = Weapon(2, 150,
+                                                   "assets/weapons/BlobsKneghtSwordMode2.png", 3)
+                    Objects.hero.get_weapon(room2_hero_weapon)
+                    give_room2_equipment = True
+
+                wave1_room2 = False
+                rooms[current_room].enemies[0][1] = True
+                rooms[current_room].enemies[1][1] = True
+                rooms[current_room].enemies[2][1] = True
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+                wave2_room2 = True
+            elif wave2_room2 and not rooms[current_room].enemies[0][1] and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
+                wave2_room2 = False
+                rooms[current_room].enemies[3][1] = True
+                rooms[current_room].enemies[4][1] = True
+                rooms[current_room].enemies[5][1] = True
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+                wave3_room2 = True
+
 
 
 
