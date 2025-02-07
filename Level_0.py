@@ -384,10 +384,10 @@ def main():
     hero_hitbox = pygame.Rect(700, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
-    hero_health = 1000000000
+    hero_health = 390
     Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
                         animations, 0.03)
-    hero_weapon = Weapon(999999999, 93, "Weapons/SantaliderSword.png", 7)
+    hero_weapon = Weapon(10, 93, "Weapons/SantaliderSword.png", 7)
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
@@ -514,8 +514,8 @@ def main():
         elif current_room == "room2" and room2_enemies_activated:
             if wave1_room2:
                 if not give_room2_equipment:
-                    Objects.hero.health = 100000000
-                    room2_hero_weapon = Weapon(9999999999999999, 150,
+                    Objects.hero.health = 390
+                    room2_hero_weapon = Weapon(150, 150,
                                                    "assets/weapons/BlobsKneghtSwordMode2.png", 3)
                     Objects.hero.get_weapon(room2_hero_weapon)
                     give_room2_equipment = True
