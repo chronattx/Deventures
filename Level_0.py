@@ -48,7 +48,7 @@ def create_rooms():
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon2 = Weapon(5, 79, "Weapons/Bata.png", 2)
-    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura/Cura1.png", speed=2, health=50,
+    cura3 = Enemy(pygame.Rect((600, 400, 40, 40)), "Cura/Cura1.png", speed=5, health=50,
                   strategy=example_strategy,
                   animations=cura_animations)
     start_weapon3 = Weapon(5, 79, "Weapons/Bata.png", 10)

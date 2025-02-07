@@ -681,6 +681,17 @@ class Enemy(BaseCharacter):
             if not self.facing_right:
                 self.sprite = pygame.transform.flip(self.sprite, True, False)
 
+    def draw(self, screen: pygame.Surface, camera):
+        super().draw(screen, camera)
+
+        # Отрисовка пути только если есть минимум 2 точки
+        if len(self.current_path) >= 2:
+            debug_points = [
+                camera.apply(pygame.Rect(p[0] - 2, p[1] - 2, 4, 4)).center
+                for p in self.current_path
+            ]
+            pygame.draw.lines(screen, (255, 0, 0), False, debug_points, 2)
+
     def run_away(self):
         pass
 
