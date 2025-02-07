@@ -57,3 +57,17 @@ def carusel_strategy(enemy: Enemy):
         if Objects.hero.is_in_hitbox((x, y)):
             return enemy.attack
     return enemy.go_to_hero
+
+def stigoro_strategy(enemy: Enemy):
+    enemy.weapon.direction = ["right", "left", "up", "down"][enemy.weapon.damage % 4]
+    enemy.attack()
+    if Objects.hero is None:
+        return enemy.wait()
+    return enemy.go_to_hero
+
+def cycle_losandro_strategy(enemy: Enemy):
+    enemy.cycle_attack()
+    if Objects.hero is None:
+        return enemy.wait()
+    return enemy.go_to_hero
+

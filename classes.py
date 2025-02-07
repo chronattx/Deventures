@@ -87,6 +87,23 @@ class Weapon:
                     self.rotation = False
                     self.angle = 0
 
+    def cycle_update(self, coords):
+        for i in range(len(self.targets)):
+            character = self.targets[i]
+            if character[1]:
+                for multiplier in [0, 0.5, 1]:
+                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
+                    y_proection = coords[1] + int(self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
+                    if character[0].is_in_hitbox((x_proection, y_proection)):
+                        character[0].get_damage(self.damage)
+                        character[1] = False
+                        break
+        if self.rotation:
+            self.angle -= self.angle_per_frame
+            if self.angle < 0:
+                self.rotation = False
+                self.angle = 0
+
     def start_rotation(self):
         self.rotation = True
         if self.targets != [[]]:
@@ -101,6 +118,13 @@ class Weapon:
                 self.up_attack_bool = False
             else:
                 self.angle = 120
+
+    def cycle_start_rotation(self):
+        self.rotation = True
+        if self.targets != [[]]:
+            for character in self.targets:
+                character[1] = True
+            self.angle = 360
 
 
 class BaseObject:
@@ -190,6 +214,12 @@ class BaseCharacter(BaseObject):
             if not self.weapon.rotation:
                 self.weapon.start_rotation()
             self.weapon.update(self.weapon_coords())
+
+    def cycle_attack(self):
+        if self.weapon is not None:
+            if not self.weapon.rotation:
+                self.weapon.cycle_start_rotation()
+            self.weapon.cycle_update(self.weapon_coords())
 
     def draw(self, screen: pygame.surface.Surface, camera):
         super().draw(screen, camera)
