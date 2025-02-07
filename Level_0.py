@@ -1,5 +1,6 @@
 from classes import *
 from animate_func import load_animation_frames
+from music import *
 from Level0_minigame1 import minigame_main
 import pygame
 from strategy import example_strategy, carusel_strategy
@@ -308,7 +309,10 @@ def create_rooms():
         [[wave2_room2_losandro2, wave2_room2_losandro2_totemolebata], False],
         [[wave2_room2_susu, wave2_room2_susu_surrodo], False]
     ]
-    room2_dialog = ''
+    room2_npc = [
+        NPC(200, 600, "assets/NPC_files/TheCG1.png")  # Добавляем NPC в центр комнаты
+    ]
+    room2_dialog = 'Не подходи ближе, пока не поговорим! Нажми "Да" чтобы начать битву.'
     rooms["room2"] = Room(room2_width, room2_height, "assets/rooms/room2.png", room2_walls, room2_transitions, room2_objects, room2_npc, room2_enemies, room2_dialog)
 
 
@@ -363,6 +367,10 @@ def create_rooms():
 def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
+    pygame.mixer.init()
+
+    # Инициализация радио
+    radio_ui = RadioUI("assets/decoration/Radio.png", 980, 50, 60, 40)  # Радио в левом верхнем углу
 
     # Инициализация игрока и комнат
     idle_frames = load_animation_frames("assets/animate_hero", 11, "MairouMotion")  # 3 кадра для idle
@@ -376,10 +384,10 @@ def main():
     hero_hitbox = pygame.Rect(700, 400, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
-    hero_health = 390
+    hero_health = 1000000000
     Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
                         animations, 0.03)
-    hero_weapon = Weapon(1, 93, "Weapons/SantaliderSword.png", 7)
+    hero_weapon = Weapon(999999999, 93, "Weapons/SantaliderSword.png", 7)
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
@@ -403,11 +411,15 @@ def main():
 
     give_room2_equipment = False
 
+    room2_enemies_activated = False  # Флаг активации врагов
+    room2_dialog_shown = False
+
     wave1_room2 = True #######
     wave2_room2 = False
     wave3_room2 = False
 
     while running:
+        check_music_status()
         # Обновление перезарядки
         delta_time = clock.get_time()
         Objects.hero.update_cooldowns(delta_time)
@@ -418,8 +430,7 @@ def main():
         screen.fill((0, 0, 0))
 
         # Отрисовка интерфейса
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        pygame.display.set_caption("GoodGame")
+        pygame.display.set_caption("Deventures")
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -433,6 +444,8 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
+                if radio_ui.check_click(mouse_pos):
+                    toggle_music()
                 # Проверяем, кликнули ли по НПС
                 for npc in rooms[current_room].npc:
                     if npc.check_click(mouse_pos, camera):
@@ -443,10 +456,20 @@ def main():
                         wave1_room1 = True
                         rooms[current_room].enemies[0][1] = True
                         Objects.hero.get_targets_to_weapon(rooms[current_room])
-                    if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png") and npc.following == True:
+
+                    if current_room == "room1" and rooms[current_room].check_object_click(mouse_pos, camera, "Table.png"):
                         game_result = minigame_main()
                         if game_result:
                             pass
+                    if current_room == "room2" and npc.check_click(mouse_pos, camera) and not room2_dialog_shown:
+                        dialog_box.visible = True
+                        dialog_box.text = rooms[current_room].dialog
+                        room2_dialog_shown = True
+                        break
+                    if current_room == "room2" and (result == "yes" or "no"):
+                        room2_enemies_activated = True
+                        dialog_box.visible = False
+
         if current_room == "room1":
             if wave1_room1 and not rooms[current_room].enemies[0][1]:
                 wave2_room1 = True
@@ -488,11 +511,11 @@ def main():
                     and not rooms[current_room].enemies[11][1]
                     and not rooms[current_room].enemies[12][1]):
                 room1_cleared = True
-        elif current_room == "room2":
+        elif current_room == "room2" and room2_enemies_activated:
             if wave1_room2:
                 if not give_room2_equipment:
-                    Objects.hero.health = 390
-                    room2_hero_weapon = Weapon(2, 150,
+                    Objects.hero.health = 100000000
+                    room2_hero_weapon = Weapon(9999999999999999, 150,
                                                    "assets/weapons/BlobsKneghtSwordMode2.png", 3)
                     Objects.hero.get_weapon(room2_hero_weapon)
                     give_room2_equipment = True
@@ -569,6 +592,7 @@ def main():
             # Позиционируем текст в верхнем левом углу
             screen.blit(cooldown_text, (10, 10))
 
+        radio_ui.draw(screen)
         pygame.display.flip()
         clock.tick(60)
 

@@ -1,6 +1,7 @@
 import pygame
 from typing import Callable
 from BSoD import draw_bsod
+from music import *
 from data_types import Coord, Rect
 import math
 
@@ -8,11 +9,39 @@ import math
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
+class RadioUI:
+    def __init__(self, image_path, x, y, width=None, height=None):
+        self.original_image = pygame.image.load(image_path).convert_alpha()
+        self.image = self.original_image
+
+        # Масштабирование изображения если указаны размеры
+        if width and height:
+            self.image = pygame.transform.smoothscale(self.original_image, (width, height))
+
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.width = width or self.original_image.get_width()
+        self.height = height or self.original_image.get_height()
+
+    def resize(self, new_width, new_height):
+        """Изменяет размер изображения радио"""
+        self.image = pygame.transform.smoothscale(self.original_image, (new_width, new_height))
+        self.rect = self.image.get_rect(topleft=self.rect.topleft)
+        self.width = new_width
+        self.height = new_height
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def check_click(self, mouse_pos):
+        return self.rect.collidepoint(mouse_pos)
+
+
 class GameObject:
-    def __init__(self, image_path, x, y):
+    def __init__(self, image_path, x, y, objects=None):
         self.image_path = image_path
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.objects = objects if objects is not None else []
 
         # Используем self.rect как хитбокс для коллизий
         self.collision_rect = self.rect
@@ -513,6 +542,7 @@ class Hero(BaseCharacter):
 
     def die(self):
         draw_bsod()
+        stop_music()
         Objects.hero = None
 
 
