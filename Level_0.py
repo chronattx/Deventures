@@ -632,7 +632,7 @@ def main():
         elif current_room == "room2":
             if room2_enemies_activated:
                 if not give_room2_equipment:
-                    Objects.hero.health = 39000000
+                    Objects.hero.health = 390
                     room2_hero_weapon = Weapon(150, 150,
                                                    "assets/weapons/BlobsKneghtSwordMode2.png", 3)
                     Objects.hero.get_weapon(room2_hero_weapon)
