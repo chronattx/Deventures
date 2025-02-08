@@ -342,7 +342,7 @@ def create_rooms():
         GameObject('assets/decoration/upcel.png', 412, 892)
     ]
     room3_npc = [
-
+        NPC(200, 50, "assets/NPC_files/TheCG1.png")
     ]
 
     stigoro_idle_frames = load_animation_frames("assets/animate_enemy/Stigoro", 1, "Stigoro")  # 1 кадра для idle
@@ -428,7 +428,7 @@ def create_rooms():
         [[wave2_room3_losandro2, wave2_room3_losandro2_longsword], False],
         [[wave2_room3_losandro3, wave2_room3_losandro3_longsword], False]
     ]
-    room3_dialog = ''
+    room3_dialog = 'Ты поможешь мне защититься от врагов?(у вас нет выбора есть только видимость)'
     rooms["room3"] = Room(room3_width, room3_height, "assets/rooms/room3.png", room3_walls, room3_transitions, room3_objects, room3_npc, room3_enemies, room3_dialog)
 
     # Комната 4
@@ -519,7 +519,9 @@ def main():
 
     give_room3_equipment = False
 
-    room3_enemies_activated = True
+    room3_dialog_shown = False
+
+    room3_enemies_activated = False
     wave1_room3 = False
     wave2_room3 = False
     room3_cleared = False
@@ -576,6 +578,15 @@ def main():
                     if current_room == "room2" and (result == "yes" or "no"):
                         room2_enemies_activated = True
                         dialog_box.visible = False
+                    if current_room == "room3" and npc.check_click(mouse_pos, camera) and not room3_dialog_shown:
+                        dialog_box.visible = True
+                        dialog_box.text = rooms[current_room].dialog
+                        room3_dialog_shown = True
+                        break
+                    if current_room == "room3" and (result == "yes" or "no"):
+                        room3_enemies_activated = True
+                        dialog_box.visible = False
+
 
         if current_room == "room1":
             if wave1_room1 and not rooms[current_room].enemies[0][1]:
@@ -621,7 +632,7 @@ def main():
         elif current_room == "room2":
             if room2_enemies_activated:
                 if not give_room2_equipment:
-                    Objects.hero.health = 390
+                    Objects.hero.health = 39000000
                     room2_hero_weapon = Weapon(150, 150,
                                                    "assets/weapons/BlobsKneghtSwordMode2.png", 3)
                     Objects.hero.get_weapon(room2_hero_weapon)
@@ -649,7 +660,7 @@ def main():
             if not give_room3_equipment:
                 Objects.hero.health = 390
                 room3_hero_weapon = Weapon(1, 49,
-                                           "assets/weapons/BulberBata.png", 10)
+                                            "assets/weapons/BulberBata.png", 10)
                 Objects.hero.get_weapon(room3_hero_weapon)
                 give_room3_equipment = True
             if room3_enemies_activated:
@@ -661,9 +672,9 @@ def main():
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
                 room3_enemies_activated = False
             elif (wave1_room3 and not rooms[current_room].enemies[0][1]
-                  and not rooms[current_room].enemies[1][1]
-                  and not rooms[current_room].enemies[2][1]
-                  and not rooms[current_room].enemies[3][1]):
+                    and not rooms[current_room].enemies[1][1]
+                    and not rooms[current_room].enemies[2][1]
+                    and not rooms[current_room].enemies[3][1]):
                 wave1_room3 = False
                 rooms[current_room].enemies[4][1] = True
                 rooms[current_room].enemies[5][1] = True
@@ -671,8 +682,8 @@ def main():
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
                 wave2_room3 = True
             elif (wave2_room3 and not rooms[current_room].enemies[4][1]
-                  and not rooms[current_room].enemies[5][1]
-                  and not rooms[current_room].enemies[6][1]):
+                    and not rooms[current_room].enemies[5][1]
+                    and not rooms[current_room].enemies[6][1]):
                 del rooms[current_room].objects[6]
                 wave2_room3 = False
                 room3_cleared = True
