@@ -346,12 +346,6 @@ class BaseCharacter(BaseObject):
         self.health -= damage
 
 
-def die():
-    draw_bsod()
-    mega_stop()
-    Objects.hero = None
-
-
 class Hero(BaseCharacter):
     def __init__(self, hitbox, image_file, speed, health, animations, animation_speed):
         """
@@ -549,8 +543,6 @@ class Hero(BaseCharacter):
                 self.weapon.show(self.weapon_coords(), screen, camera)
         else:
             screen.blit(self.image, self.rect)
-            # Отрисовка хитбокса
-            #pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -594,11 +586,18 @@ class Hero(BaseCharacter):
 
     def update(self, delta_time, screen, camera):
         if self.health <= 0:
-            die()
+            self.die()  # Вызываем метод die() экземпляра
         else:
             self.update_animation(delta_time)
             self.draw(screen, camera)
             self.draw_energy_bar(screen)
+
+    def die(self):
+        """Метод смерти персонажа"""
+        global is_music_playing
+        mega_stop()
+        draw_bsod()
+        Objects.hero = None
 
 
 class Enemy(BaseCharacter):

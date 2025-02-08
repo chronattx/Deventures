@@ -9,6 +9,8 @@ MUSIC_TRACKS = [
     "assets/music_traks/Track4.mp3"
 ]
 
+CREDITS_MUSIC = "assets/music_traks/End_song.mp3"
+
 # Индекс текущего трека
 current_track_index = 0
 
@@ -47,7 +49,11 @@ def stop_music():
 
 
 def mega_stop():
+    """Полная остановка музыки со сбросом состояния"""
+    global is_music_playing, music_position
     pygame.mixer.music.stop()
+    is_music_playing = False
+    music_position = 0  # Сбрасываем позицию
 
 
 def next_track():
@@ -103,3 +109,20 @@ def check_music_status():
         is_music_playing = False  # Отмечаем, что музыка остановилась
         current_track_index = (current_track_index + 1) % len(MUSIC_TRACKS)  # Следующий трек
         play_music()  # Запускаем новый трек
+
+
+def play_credits_music():
+    """
+    Останавливает текущую музыку (если она играет) и запускает музыку для титров.
+    """
+    global is_music_playing, music_position
+
+    # Останавливаем текущую музыку
+    if is_music_playing:
+        stop_music()
+
+    # Загружаем и запускаем музыку для титров
+    pygame.mixer.music.load(CREDITS_MUSIC)
+    pygame.mixer.music.play(-1)  # -1 означает бесконечное воспроизведение
+    is_music_playing = True
+    music_position = 0  # Сбрасываем позицию воспроизведения
