@@ -513,13 +513,13 @@ def main():
     room2_enemies_activated = False  # Флаг активации врагов
     room2_dialog_shown = False
 
-    wave1_room2 = True #######
+    wave1_room2 = False
     wave2_room2 = False
     room2_cleared = False
 
     give_room3_equipment = False
 
-    wave1_room3_start = True
+    room3_enemies_activated = True
     wave1_room3 = False
     wave2_room3 = False
     room3_cleared = False
@@ -618,8 +618,8 @@ def main():
                     and not rooms[current_room].enemies[11][1]
                     and not rooms[current_room].enemies[12][1]):
                 room1_cleared = True
-        elif current_room == "room2" and room2_enemies_activated:
-            if wave1_room2:
+        elif current_room == "room2":
+            if room2_enemies_activated:
                 if not give_room2_equipment:
                     Objects.hero.health = 390
                     room2_hero_weapon = Weapon(150, 150,
@@ -627,12 +627,12 @@ def main():
                     Objects.hero.get_weapon(room2_hero_weapon)
                     give_room2_equipment = True
 
-                wave1_room2 = False
+                room2_enemies_activated = False
+                wave1_room2 = True
                 rooms[current_room].enemies[0][1] = True
                 rooms[current_room].enemies[1][1] = True
                 rooms[current_room].enemies[2][1] = True
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
-                wave1_room2_start = False
             elif wave1_room2 and not rooms[current_room].enemies[0][1] and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
                 wave1_room2 = False
                 rooms[current_room].enemies[3][1] = True
@@ -644,6 +644,7 @@ def main():
                   and not rooms[current_room].enemies[4][1]
                   and not rooms[current_room].enemies[5][1]):
                 room2_cleared = True
+                wave2_room2 = False
         elif current_room == "room3":
             if not give_room3_equipment:
                 Objects.hero.health = 390
@@ -651,14 +652,14 @@ def main():
                                            "assets/weapons/BulberBata.png", 10)
                 Objects.hero.get_weapon(room3_hero_weapon)
                 give_room3_equipment = True
-            if wave1_room3_start:
+            if room3_enemies_activated:
                 wave1_room3 = True
                 rooms[current_room].enemies[0][1] = True
                 rooms[current_room].enemies[1][1] = True
                 rooms[current_room].enemies[2][1] = True
                 rooms[current_room].enemies[3][1] = True
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
-                wave1_room3_start = False
+                room3_enemies_activated = False
             elif (wave1_room3 and not rooms[current_room].enemies[0][1]
                   and not rooms[current_room].enemies[1][1]
                   and not rooms[current_room].enemies[2][1]
