@@ -1,61 +1,115 @@
 import pygame
 from typing import Callable
 from BSoD import draw_bsod
-from data_types import Coord
+from music import *
+from data_types import Coord, Rect
 import math
 
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
 
 
+class RadioUI:
+    def __init__(self, image_path, x, y, width=None, height=None):
+        self.original_image = pygame.image.load(image_path).convert_alpha()
+        self.image = self.original_image
+
+        # Масштабирование изображения если указаны размеры
+        if width and height:
+            self.image = pygame.transform.smoothscale(self.original_image, (width, height))
+
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.width = width or self.original_image.get_width()
+        self.height = height or self.original_image.get_height()
+
+    def resize(self, new_width, new_height):
+        """Изменяет размер изображения радио"""
+        self.image = pygame.transform.smoothscale(self.original_image, (new_width, new_height))
+        self.rect = self.image.get_rect(topleft=self.rect.topleft)
+        self.width = new_width
+        self.height = new_height
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def check_click(self, mouse_pos):
+        return self.rect.collidepoint(mouse_pos)
+
+
 class GameObject:
-    def __init__(self, image_path, x, y):
-        self.image_path = image_path  # Сохраняем путь к изображению
+    def __init__(self, image_path, x, y, objects=None):
+        self.image_path = image_path
         self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.objects = objects if objects is not None else []
+
+        # Используем self.rect как хитбокс для коллизий
+        self.collision_rect = self.rect
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
 
 
-
 class Weapon:
-    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: str, character=None):
+    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None):
+        """
+        Инициализация оружия.
+        :param damage: Урон оружия.
+        :param length: Длина оружия.
+        :param image_file: Путь к изображению оружия.
+        :param angle_per_frame: Угол поворота оружия за кадр.
+        :param character: Персонаж, владеющий оружием.
+        """
         self.damage = damage
         self.length = length
         self.image_file = image_file
         self.character = character
-        self.angle = 0
-        self.rotation = False
-        self.direction = "right"
-        self.angle_per_frame = angle_per_frame
-        self.targets = [[]]
+        self.angle = 0  # Текущий угол наклона оружия
+        self.rotation = False  # Флаг вращения
+        self.direction = "right"  # Направление атаки
+        self.angle_per_frame = angle_per_frame  # Скорость вращения оружия
+        self.targets = []  # Список целей в зоне атаки
+        self.up_attack_bool = False  # Флаг атаки вверх
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
-        im = pygame.image.load(self.image_file)
+        """
+        Отображение оружия на экране.
+        :param coords: Координаты оружия.
+        :param screen: Поверхность экрана для отрисовки.
+        :param camera: Камера для преобразования координат.
+        """
+        im = pygame.image.load(self.image_file)  # Загрузка изображения
         if self.rotation:
             if self.direction == "right" or self.direction == "up":
-                im = pygame.transform.flip(im, True, False)
+                im = pygame.transform.flip(im, True, False)  # Отражение при атаке вправо/вверх
         else:
             if self.character.facing_right:
-                im = pygame.transform.flip(im, True, False)
-        im = pygame.transform.rotate(im, self.angle)
+                im = pygame.transform.flip(im, True, False)  # Отражение при движении вправо
+
+        im = pygame.transform.rotate(im, self.angle)  # Вращение изображения
         rect = im.get_rect()
         rect.center = (coords[0], coords[1])
-        screen.blit(im, camera.apply(rect))
+        screen.blit(im, camera.apply(rect))  # Отрисовка оружия на экране
 
     def update(self, coords):
-        for i in range(len(self.targets)):
-            character = self.targets[i]
-            if character[1]:
-                for multiplier in [0, 0.5, 1]:
-                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle))
-                    y_proection = coords[1] + int(self.length * multiplier * math.cos(self.angle))
+        """
+        Обновление состояния оружия (вращение, проверка попаданий).
+        :param coords: Координаты оружия.
+        """
+        for character in self.targets:
+            if character[1]:  # Если цель может быть поражена
+                for multiplier in [0, 0.5, 1]:  # Проверка трех точек вдоль оружия
+                    x_proection = coords[0] + int(
+                        self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
+                    y_proection = coords[1] + int(
+                        self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
                     if character[0].is_in_hitbox((x_proection, y_proection)):
-                        character[0].get_damage(self.damage)
-                        character[1] = False
+                        character[0].get_damage(self.damage)  # Нанесение урона
+                        character[1] = False  # Цель больше неуязвима в этом ударе
                         break
+
         if self.rotation:
+            # Логика вращения оружия в зависимости от направления
             if self.direction == "right":
                 self.angle -= self.angle_per_frame
                 if self.angle < 210:
@@ -75,16 +129,38 @@ class Weapon:
                     self.rotation = False
                     self.up_attack_bool = False
                     self.angle = 0
-            else:
+            else:  # Атака вниз
                 self.angle += self.angle_per_frame
                 if self.angle > 240:
                     self.rotation = False
                     self.angle = 0
 
+    def cycle_update(self, coords):
+        for i in range(len(self.targets)):
+            character = self.targets[i]
+            if character[1]:
+                for multiplier in [0, 0.5, 1]:
+                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
+                    y_proection = coords[1] + int(self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
+                    if character[0].is_in_hitbox((x_proection, y_proection)):
+                        character[0].get_damage(self.damage)
+                        character[1] = False
+                        break
+        if self.rotation:
+            self.angle -= self.angle_per_frame
+            if self.angle < 0:
+                self.rotation = False
+                self.angle = 0
+
     def start_rotation(self):
+        """
+        Начало вращения оружия.
+        """
         self.rotation = True
         for character in self.targets:
-            character[1] = True
+            character[1] = True  # Делаем цели уязвимыми
+
+        # Устанавливаем начальный угол вращения в зависимости от направления атаки
         if self.direction == "right":
             self.angle = 330
         elif self.direction == "left":
@@ -92,8 +168,15 @@ class Weapon:
         elif self.direction == "up":
             self.angle = 60
             self.up_attack_bool = False
-        else:
+        else:  # Вниз
             self.angle = 120
+
+    def cycle_start_rotation(self):
+        self.rotation = True
+        if self.targets != [[]]:
+            for character in self.targets:
+                character[1] = True
+            self.angle = 360
 
 
 class BaseObject:
@@ -102,7 +185,7 @@ class BaseObject:
         self.original_image = pygame.image.load(image_file)
         self.image = self.original_image
 
-        self.facing_right = True
+        self.facing_right = False
         self.animations = {}
         for key in animations:
             self.animations[key] = []
@@ -150,7 +233,7 @@ class BaseObject:
 
     def draw(self, screen: pygame.surface.Surface, camera):
         rect = self.image.get_rect(topleft=(self.hitbox[0], self.hitbox[1]))
-        pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.hitbox), 2)
+        #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.hitbox), 2)
         screen.blit(self.image, camera.apply(rect))
 
     def resize_image(self, new_width, new_height):
@@ -176,13 +259,19 @@ class BaseCharacter(BaseObject):
             self.weapon.targets = [[Objects.hero, False]]
 
     def get_targets_to_weapon(self, current_room):
-        self.weapon.targets = [[enemy_combo[0][0], enemy_combo[1]] for enemy_combo in current_room.enemies]
+        self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
 
-    def attack(self):
+    def attack(self, *args):
         if self.weapon is not None:
             if not self.weapon.rotation:
                 self.weapon.start_rotation()
             self.weapon.update(self.weapon_coords())
+
+    def cycle_attack(self):
+        if self.weapon is not None:
+            if not self.weapon.rotation:
+                self.weapon.cycle_start_rotation()
+            self.weapon.cycle_update(self.weapon_coords())
 
     def draw(self, screen: pygame.surface.Surface, camera):
         super().draw(screen, camera)
@@ -225,8 +314,42 @@ class BaseCharacter(BaseObject):
             y = self.hitbox[1] + int(self.hitbox[3] * 0.9)
             return x, y
 
+    def weapon_coords_check(self):
+        direction = self.weapon.direction
+        if direction == "right":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.7)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+        elif direction == "left":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.3)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.5)
+        elif direction == "up":
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.4)
+        else:
+            if self.facing_right:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.6)
+            else:
+                x = self.hitbox[0] + int(self.hitbox[2] * 0.4)
+            y = self.hitbox[1] + int(self.hitbox[3] * 0.6)
+        return x, y
+
     def get_damage(self, damage: int):
         self.health -= damage
+
+
+def die():
+    draw_bsod()
+    mega_stop()
+    Objects.hero = None
 
 
 class Hero(BaseCharacter):
@@ -241,6 +364,7 @@ class Hero(BaseCharacter):
 
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
 
+        self.coords = None
         self.last_dx = 0  # Последнее направление по X
         self.last_dy = 0  # Последнее направление по Y
 
@@ -276,7 +400,7 @@ class Hero(BaseCharacter):
             else:
                 self.weapon.update(self.weapon_coords())
 
-    def move(self, keys, walls: list[pygame.Rect], objects: list[pygame.Rect], delta_time):
+    def move(self, keys, walls: list[Rect], objects: list[Rect], delta_time):
         dx, dy = 0, 0
 
         # Обработка нажатий клавиш
@@ -410,7 +534,7 @@ class Hero(BaseCharacter):
         if camera is not None:
             screen.blit(self.image, camera.apply(self.rect))
             # Отрисовка хитбокса
-            pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
+            #pygame.draw.rect(screen, (255, 0, 0), camera.apply(self.rect), 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -426,7 +550,7 @@ class Hero(BaseCharacter):
         else:
             screen.blit(self.image, self.rect)
             # Отрисовка хитбокса
-            pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
+            #pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -470,15 +594,11 @@ class Hero(BaseCharacter):
 
     def update(self, delta_time, screen, camera):
         if self.health <= 0:
-            self.die()
+            die()
         else:
             self.update_animation(delta_time)
             self.draw(screen, camera)
             self.draw_energy_bar(screen)
-
-    def die(self):
-        draw_bsod()
-        Objects.hero = None
 
 
 class Enemy(BaseCharacter):
@@ -486,35 +606,172 @@ class Enemy(BaseCharacter):
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
         self.strategy = strategy
         self.death = 0
+        self.current_path = []
+        self.search_radius = 300
+        self.stuck_timer = 0
+        self.last_direction = pygame.Vector2(0, 0)
+        self.target_angle = 0
 
-    def move(self, delta: Coord):
-        self.coords = (self.hitbox[0] + delta[0], self.hitbox[1] + delta[1])
-        self.update_hitbox(delta)
-        if delta[0] >= 0:
+    def move(self, delta: tuple, walls: list, objects: list):
+        dx, dy = delta
+        original_pos = self.hitbox.topleft
+
+        # Движение по X
+        self.hitbox.x += dx
+        collision = False
+        for wall in walls:
+            if self.hitbox.colliderect(wall):
+                collision = True
+                break
+        for obj in objects:
+            if self.hitbox.colliderect(obj.collision_rect):
+                collision = True
+                break
+        if collision:
+            self.hitbox.x = original_pos[0]
+            dx = 0
+
+        if dx > 0:
             self.facing_right = True
-        else:
+        elif dx < 0:
             self.facing_right = False
 
-    def update(self, screen: pygame.surface.Surface, camera, *args, **kwargs):
+        # Движение по Y
+        self.hitbox.y += dy
+        collision = False
+        for wall in walls:
+            if self.hitbox.colliderect(wall):
+                collision = True
+                break
+        for obj in objects:
+            if self.hitbox.colliderect(obj.collision_rect):
+                collision = True
+                break
+        if collision:
+            self.hitbox.y = original_pos[1]
+            dy = 0
+
+        self.last_direction = pygame.Vector2(dx, dy).normalize() if (dx, dy) != (0, 0) else self.last_direction
+        self.update_rotation(dx, dy)
+
+    def update_rotation(self, dx, dy):
+        target_angle = math.degrees(math.atan2(-dy, dx)) % 360
+        angle_diff = (target_angle - self.target_angle + 180) % 360 - 180
+        self.target_angle += angle_diff * 0.1
+
+    def go_to_hero(self, target_pos: tuple, walls: list, objects: list):
+        if pygame.time.get_ticks() - self.stuck_timer < 1000:
+            return
+
+        if pygame.time.get_ticks() % 500 < 50:
+            self.current_path = self.find_simple_path(
+                self.hitbox.center,
+                target_pos,
+                walls,
+                objects
+            )
+
+        if self.current_path:
+            self.follow_path(walls, objects)
+        else:
+            self.basic_ai_movement(target_pos, walls, objects)
+
+    def find_simple_path(self, start, end, walls, objects, max_steps=50):
+        class Node:
+            def __init__(self, pos, parent=None):
+                self.pos = pos
+                self.parent = parent
+                self.g = 0
+                self.h = ((int(end[0]) - int(pos[0])) ** 2 + (int(end[1]) - int(pos[1])) ** 2) ** 0.5
+                self.f = self.g + self.h
+
+        open_set = [Node(start)]
+        closed_list = []
+
+        for _ in range(max_steps):
+            if not open_set: break
+
+            current = min(open_set, key=lambda x: x.f)
+            if current.h < 50:
+                path = []
+                while current:
+                    path.append(current.pos)
+                    current = current.parent
+                return path[::-1]
+
+            closed_list.append(current)
+            open_set.remove(current)
+
+            for dx, dy in [(50, 0), (-50, 0), (0, 50), (0, -50)]:
+                neighbor = (current.pos[0] + dx, current.pos[1] + dy)
+                if any(n.pos == neighbor for n in closed_list):
+                    continue
+
+                if not self.check_collision(neighbor, walls, objects):
+                    new_node = Node(neighbor, current)
+                    new_node.g = current.g + 50
+                    if not any(n.pos == neighbor and n.f <= new_node.f for n in open_set):
+                        open_set.append(new_node)
+
+        return []
+
+    def check_collision(self, pos, walls, objects):
+        temp_rect = pygame.Rect(
+            pos[0] - self.hitbox.width // 2,
+            pos[1] - self.hitbox.height // 2,
+            self.hitbox.width,
+            self.hitbox.height
+        )
+        return any(temp_rect.colliderect(obj) for obj in walls) or \
+            any(temp_rect.colliderect(obj.collision_rect) for obj in objects)
+
+    def follow_path(self, walls, objects):
+        if len(self.current_path) < 2:
+            self.current_path = []
+            return
+
+        target_point = self.current_path[0]
+        if self.hitbox.collidepoint(target_point):
+            self.current_path.pop(0)
+            return
+
+        direction = pygame.Vector2(target_point) - pygame.Vector2(self.hitbox.center)
+        if direction.length() > 0:
+            self.move(direction.normalize() * self.speed, walls, objects)
+
+    def basic_ai_movement(self, target_pos, walls, objects):
+        to_target = pygame.Vector2(target_pos) - pygame.Vector2(self.hitbox.center)
+        if to_target.length() == 0:
+            return
+
+        avoidance = pygame.Vector2(0, 0)
+        for obj in objects + walls:
+            obstacle_rect = obj.collision_rect if hasattr(obj, "collision_rect") else obj
+            vec_to_obj = pygame.Vector2(obstacle_rect.center) - self.hitbox.center
+            distance = vec_to_obj.length()
+
+            if 0 < distance < self.search_radius:
+                avoidance += vec_to_obj.normalize() * (1 - distance / self.search_radius) * -1
+
+        direction = (to_target.normalize() + avoidance)
+        if direction.length() > 0:
+            self.move(direction.normalize() * self.speed, walls, objects)
+
+    def update(self, screen: pygame.surface.Surface, camera, current_room,
+               target_pos, walls_list, objects_list, delta_time):
         if self.health <= 0:
             if not self.death:
                 self.die()
         else:
-            mode = self.strategy(self, *args, **kwargs)
-            mode()
+            mode = self.strategy(self)
+            mode(target_pos, walls_list, objects_list)
+            self.update_animation(delta_time)
         self.draw(screen, camera)
 
-    def go_to_hero(self):
-        x1, y1 = self.hitbox.center
-        x2, y2 = Objects.hero.coords
-        k = self.speed / (((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5 + 0.0000001)
-        distance = (int(k * (x2 - x1)), int(k * (y2 - y1)))
-        self.move(distance)
-
-    def run_away(self):
+    def run_away(self, *args):
         pass
 
-    def wait(self):
+    def wait(self, *args):
         pass
 
     def die(self):
@@ -551,24 +808,9 @@ class Enemy(BaseCharacter):
             super().update_animation(delta_time)
 
 
-class Peaceful(BaseCharacter):
-    def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, animations):
-        super().__init__(hitbox, image_file, speed, health, animations)
-        self.dialogs = ['']
-        self.current = 0
-        self.avatar = 'assets/haher.png'
-
-    def current_dialog(self):
-        d = self.dialogs[self.current]
-        self.current += 1
-        self.current %= len(self.dialogs)
-        return d
-
-
 class Objects:
     hero: Hero = None
     enemies: list[Enemy] = []
-    peaceful: list[Peaceful] = []
     universal_weapons: dict[str, Weapon] = {}
 
 
@@ -623,12 +865,12 @@ class Room:
         for transition in self.transitions:
             pygame.draw.rect(screen, (255, 0, 0), camera.apply(transition["rect"]), 2)
 
-        # Отображение объектов
-        for obj in self.objects:
-            obj.draw(screen, camera)
-
+        # Отрисовка NPC
         for npc in self.npc:
             npc.draw(screen, camera)
+
+        for object in self.objects:
+            object.draw(screen, camera)
 
     def check_object_click(self, mouse_pos, camera, target_object="Table.png"):
         """ Проверяет, кликнули ли по объекту с заданным изображением, учитывая смещение камеры. """
@@ -643,9 +885,10 @@ class Room:
 
 class NPC:
     def __init__(self, x, y, image_path):
-        self.rect = pygame.Rect(x, y, 200, 200)
+        #self.rect = pygame.Rect(x, y, 200, 200)
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (200, 200))
+        #self.image = pygame.transform.scale(self.image, (200, 200))
+        self.rect = self.image.get_rect(topleft=(x,y))
         self.following = False
 
     def draw(self, screen, camera):

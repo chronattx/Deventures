@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 lights_engine.set_ambient(0, 0, 0, 128)
 
 # Загрузка фона
-tex_background = lights_engine.load_texture('assets/FON.png')
+tex_background = lights_engine.load_texture("assets/FON.png")
 
 # Создаём источник света
 light = PointLight(position=(100, 100), power=1.0, radius=600)
@@ -28,7 +28,7 @@ light.set_color(255, 255, 255, 255)
 lights_engine.lights.append(light)
 
 # --- ЗАГРУЗКА «КНОПКИ» КАК ГОТОВОГО PNG ---
-btn_texture = lights_engine.load_texture('assets/buttons/startbtn.png')
+btn_texture = lights_engine.load_texture("assets/buttons/startbtn.png")
 
 # Параметры кнопки
 button_w, button_h = 600, 150
@@ -83,6 +83,6 @@ while running:
         # Для отладки
         t2 = time.time()
         mspt = (t2 - t1) * 1000
-        pygame.display.set_caption(f'{mspt:.2f} mspt; {clock.get_fps():.2f} fps')
+        pygame.display.set_caption(f"{mspt:.2f} mspt; {clock.get_fps():.2f} fps")
 
 pygame.quit()
