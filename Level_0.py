@@ -333,7 +333,7 @@ def create_rooms():
     ]
     room3_transitions = [
         {"rect": pygame.Rect(450, 0, 100, 10), "target": "room2", "player_start": (400, 700)}, # Вход сверху
-        {"rect": pygame.Rect(450, 990, 100, 10), "target": "room4", "player_start": (550, 20)}  # Вход снизу
+        {"rect": pygame.Rect(450, 990, 100, 10), "target": "room4", "player_start": (400, 20)}  # Вход снизу
     ]
     room3_objects = [
         GameObject('assets/decoration/Firaplaces.png', 576, 0),
@@ -439,16 +439,48 @@ def create_rooms():
     room4_width, room4_height = 1100, 1000
     room4_walls = [
         pygame.Rect(0, 0, 500, 10), # Верхняя стена вверх
+        pygame.Rect(0, -10, 1500, 10),
         pygame.Rect(600, 0, 500, 10), # Верхняя стена низ
         pygame.Rect(0, 990, 1100, 10), # Нижняя стена
         pygame.Rect(0, 0, 10, 1000),
         pygame.Rect(1090, 0, 10, 450),
+        pygame.Rect(1100, 0, 10, 1450),
         pygame.Rect(1090, 550, 10, 500)
     ]
     room4_transitions = [{"rect": pygame.Rect(1090, 450, 10, 100), "target": "room5", "player_start": (30, 600)},
                          {"rect": pygame.Rect(500, 0, 100, 10), "target": "room3", "player_start": (500, 900)}
-                         ]
-    rooms["room4"] = Room(room4_width, room4_height, "assets/rooms/room4.png", room4_walls, room4_transitions)
+    ]
+    room4_objects = [
+    GameObject('assets/decoration/DoubleTableHitbox.png', 208, 161),
+    GameObject('assets/decoration/DoubleTableHitbox.png', 578, 97),
+    GameObject('assets/decoration/DoubleTableHitbox.png', 576, 681),
+    GameObject('assets/decoration/RightTablesHitbox.png', 804, 171),
+    GameObject('assets/decoration/DoubleTableHitbox.png', 1023, 912),
+    GameObject('assets/decoration/DoubleTableHitbox.png', 580, 41),
+    GameObject('assets/decoration/LeftDownTablesHitbox.png', 206, 391),
+    GameObject('assets/decoration/MiddleTablesHitbox.png', 570, 398),
+    ]
+    room4_npc = [
+
+    ]
+
+    wave1_room4_burryochaser = Enemy(pygame.Rect((900, 800, 0, 0)), "assets/animate_enemy/Stigoro/Stigoro1.png",
+    speed = 10, health = 666,
+    strategy = example_strategy,
+    animations = burryo_animations, animation_speed = 0.02)
+    wave1_room4_burryochaser_surrodosword = Weapon(12, 200,
+    "assets/weapons/SurrodoSword.png", 31)
+
+    wave1_room4_burryochaser.get_weapon(wave1_room4_burryochaser_surrodosword)
+
+    Objects.enemies.append(wave1_room4_burryochaser)
+
+    room4_enemies = [
+    [[wave1_room4_burryochaser, wave1_room4_burryochaser_surrodosword], False],
+    ]
+    room4_dialog = ''
+    rooms["room4"] = Room(room4_width, room4_height, "assets/rooms/room4.png", room4_walls, room4_transitions,
+                          room4_objects, room4_npc, room4_enemies, room4_dialog)
 
     # Комната 5
     room5_width, room5_height = 2000, 1200
@@ -458,7 +490,6 @@ def create_rooms():
         pygame.Rect(0, 0, 10, 550),
         pygame.Rect(0, 650, 10, 550),
         pygame.Rect(1990, 0, 10, 1200),
-        ((0, 790), (1600, 790))
     ]
     room5_transitions = [{"rect": pygame.Rect(0, 550, 10, 100), "target": "room4", "player_start": (1000, 500)}
                          ]
@@ -494,7 +525,7 @@ def main():
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
-    current_room = "room1"
+    current_room = "room3"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     Objects.hero.get_targets_to_weapon(rooms["room1"])
@@ -529,6 +560,12 @@ def main():
     wave1_room3 = False
     wave2_room3 = False
     room3_cleared = False
+
+    give_room4_equipment = False
+
+    room4_enemies_activated = True
+    wave1_room4 = False
+    room4_cleared = False
 
     while running:
         check_music_status()
@@ -663,7 +700,7 @@ def main():
         elif current_room == "room3":
             if not give_room3_equipment:
                 Objects.hero.health = 390
-                room3_hero_weapon = Weapon(1, 49,
+                room3_hero_weapon = Weapon(100, 49,
                                             "assets/weapons/BulberBata.png", 10)
                 Objects.hero.get_weapon(room3_hero_weapon)
                 give_room3_equipment = True
@@ -688,9 +725,33 @@ def main():
             elif (wave2_room3 and not rooms[current_room].enemies[4][1]
                     and not rooms[current_room].enemies[5][1]
                     and not rooms[current_room].enemies[6][1]):
-                del rooms[current_room].objects[6]
+                if len(rooms[current_room].objects) == 7:
+                    del rooms[current_room].objects[6]
                 wave2_room3 = False
                 room3_cleared = True
+        elif current_room == "room4":
+            if not give_room4_equipment:
+                Objects.hero.health = 390
+                Objects.hero.weapon = None
+                give_room4_equipment = True
+            if room4_enemies_activated:
+                wave1_room4 = True
+                rooms[current_room].enemies[0][1] = True
+                room4_enemies_activated = False
+            elif (wave1_room4 and not rooms[current_room].enemies[0][1]):
+                wave1_room4 = False
+                rooms[current_room].enemies[0][0][0].speed = 10
+                Objects.hero.get_weapon(Weapon(1, 49,
+                                           "assets/animate_enemy/Burryo/Burryo1.png", 1))
+                Objects.hero.get_targets_to_weapon(rooms[current_room])
+                room4_cleared = True
+            if wave1_room4:
+                if pygame.time.get_ticks() % 60 == 0:
+                    Objects.hero.speed += 1
+                    rooms[current_room].enemies[0][0][0].speed += 2
+                if Objects.hero.speed == 40:
+                    rooms[current_room].enemies[0][0][0].health = -2
+
 
 
 
@@ -702,7 +763,7 @@ def main():
 
 
         # Проверка переходов между комнатами
-        if (current_room == "room1" and room1_cleared) or (current_room == "room2" and room2_cleared) or (current_room == "room3" and room3_cleared):
+        if (current_room == "room1" and room1_cleared) or (current_room == "room2" and room2_cleared) or (current_room == "room3" and room3_cleared) or (current_room == "room4" and room4_cleared):
             for transition in rooms[current_room].transitions:
                 if transition["rect"].colliderect(Objects.hero.rect):
                     current_room = transition["target"]
