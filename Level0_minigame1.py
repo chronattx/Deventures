@@ -95,7 +95,6 @@ def minigame_main():
                 if event.button == 1:
                     # Проверка клика по кнопке "Назад"
                     if back_button_rect.collidepoint(event.pos):
-                        running = False
                         return game_success
             if event.type == KEYDOWN:
                 if event.key == K_RETURN:

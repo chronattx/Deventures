@@ -48,49 +48,68 @@ class GameObject:
 
     def draw(self, screen, camera):
         screen.blit(self.image, camera.apply(self.rect))
-        # Для отладки коллизий можно отрисовать хитбокс
-        #pygame.draw.rect(screen, (0, 255, 0), camera.apply(self.collision_rect), 1)
-
-
 
 
 class Weapon:
     def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None):
+        """
+        Инициализация оружия.
+        :param damage: Урон оружия.
+        :param length: Длина оружия.
+        :param image_file: Путь к изображению оружия.
+        :param angle_per_frame: Угол поворота оружия за кадр.
+        :param character: Персонаж, владеющий оружием.
+        """
         self.damage = damage
         self.length = length
         self.image_file = image_file
         self.character = character
-        self.angle = 0
-        self.rotation = False
-        self.direction = "right"
-        self.angle_per_frame = angle_per_frame
-        self.targets = [[]]
+        self.angle = 0  # Текущий угол наклона оружия
+        self.rotation = False  # Флаг вращения
+        self.direction = "right"  # Направление атаки
+        self.angle_per_frame = angle_per_frame  # Скорость вращения оружия
+        self.targets = []  # Список целей в зоне атаки
+        self.up_attack_bool = False  # Флаг атаки вверх
 
     def show(self, coords: Coord, screen: pygame.surface.Surface, camera):
-        im = pygame.image.load(self.image_file)
+        """
+        Отображение оружия на экране.
+        :param coords: Координаты оружия.
+        :param screen: Поверхность экрана для отрисовки.
+        :param camera: Камера для преобразования координат.
+        """
+        im = pygame.image.load(self.image_file)  # Загрузка изображения
         if self.rotation:
             if self.direction == "right" or self.direction == "up":
-                im = pygame.transform.flip(im, True, False)
+                im = pygame.transform.flip(im, True, False)  # Отражение при атаке вправо/вверх
         else:
             if self.character.facing_right:
-                im = pygame.transform.flip(im, True, False)
-        im = pygame.transform.rotate(im, self.angle)
+                im = pygame.transform.flip(im, True, False)  # Отражение при движении вправо
+
+        im = pygame.transform.rotate(im, self.angle)  # Вращение изображения
         rect = im.get_rect()
         rect.center = (coords[0], coords[1])
-        screen.blit(im, camera.apply(rect))
+        screen.blit(im, camera.apply(rect))  # Отрисовка оружия на экране
 
     def update(self, coords):
-        for i in range(len(self.targets)):
-            character = self.targets[i]
-            if character[1]:
-                for multiplier in [0, 0.5, 1]:
-                    x_proection = coords[0] + int(self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
-                    y_proection = coords[1] + int(self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
+        """
+        Обновление состояния оружия (вращение, проверка попаданий).
+        :param coords: Координаты оружия.
+        """
+        for character in self.targets:
+            if character[1]:  # Если цель может быть поражена
+                for multiplier in [0, 0.5, 1]:  # Проверка трех точек вдоль оружия
+                    x_proection = coords[0] + int(
+                        self.length * multiplier * math.sin(self.angle * -1 * (math.pi / 180)))
+                    y_proection = coords[1] + int(
+                        self.length * multiplier * -1 * math.cos(self.angle * (math.pi / 180)))
                     if character[0].is_in_hitbox((x_proection, y_proection)):
-                        character[0].get_damage(self.damage)
-                        character[1] = False
+                        character[0].get_damage(self.damage)  # Нанесение урона
+                        character[1] = False  # Цель больше неуязвима в этом ударе
                         break
+
         if self.rotation:
+            # Логика вращения оружия в зависимости от направления
             if self.direction == "right":
                 self.angle -= self.angle_per_frame
                 if self.angle < 210:
@@ -110,26 +129,30 @@ class Weapon:
                     self.rotation = False
                     self.up_attack_bool = False
                     self.angle = 0
-            else:
+            else:  # Атака вниз
                 self.angle += self.angle_per_frame
                 if self.angle > 240:
                     self.rotation = False
                     self.angle = 0
 
     def start_rotation(self):
+        """
+        Начало вращения оружия.
+        """
         self.rotation = True
-        if self.targets != [[]]:
-            for character in self.targets:
-                character[1] = True
-            if self.direction == "right":
-                self.angle = 330
-            elif self.direction == "left":
-                self.angle = 30
-            elif self.direction == "up":
-                self.angle = 60
-                self.up_attack_bool = False
-            else:
-                self.angle = 120
+        for character in self.targets:
+            character[1] = True  # Делаем цели уязвимыми
+
+        # Устанавливаем начальный угол вращения в зависимости от направления атаки
+        if self.direction == "right":
+            self.angle = 330
+        elif self.direction == "left":
+            self.angle = 30
+        elif self.direction == "up":
+            self.angle = 60
+            self.up_attack_bool = False
+        else:  # Вниз
+            self.angle = 120
 
 
 class BaseObject:
@@ -293,6 +316,12 @@ class BaseCharacter(BaseObject):
         self.health -= damage
 
 
+def die():
+    draw_bsod()
+    mega_stop()
+    Objects.hero = None
+
+
 class Hero(BaseCharacter):
     def __init__(self, hitbox, image_file, speed, health, animations, animation_speed):
         """
@@ -305,6 +334,7 @@ class Hero(BaseCharacter):
 
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
 
+        self.coords = None
         self.last_dx = 0  # Последнее направление по X
         self.last_dy = 0  # Последнее направление по Y
 
@@ -534,16 +564,11 @@ class Hero(BaseCharacter):
 
     def update(self, delta_time, screen, camera):
         if self.health <= 0:
-            self.die()
+            die()
         else:
             self.update_animation(delta_time)
             self.draw(screen, camera)
             self.draw_energy_bar(screen)
-
-    def die(self):
-        draw_bsod()
-        stop_music()
-        Objects.hero = None
 
 
 class Enemy(BaseCharacter):
@@ -690,7 +715,7 @@ class Enemy(BaseCharacter):
 
         avoidance = pygame.Vector2(0, 0)
         for obj in objects + walls:
-            obstacle_rect = obj.collision_rect if hasattr(obj, 'collision_rect') else obj
+            obstacle_rect = obj.collision_rect if hasattr(obj, "collision_rect") else obj
             vec_to_obj = pygame.Vector2(obstacle_rect.center) - self.hitbox.center
             distance = vec_to_obj.length()
 
@@ -725,24 +750,9 @@ class Enemy(BaseCharacter):
                 break
 
 
-class Peaceful(BaseCharacter):
-    def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, animations):
-        super().__init__(hitbox, image_file, speed, health, animations)
-        self.dialogs = ['']
-        self.current = 0
-        self.avatar = 'assets/haher.png'
-
-    def current_dialog(self):
-        d = self.dialogs[self.current]
-        self.current += 1
-        self.current %= len(self.dialogs)
-        return d
-
-
 class Objects:
     hero: Hero = None
     enemies: list[Enemy] = []
-    peaceful: list[Peaceful] = []
     universal_weapons: dict[str, Weapon] = {}
 
 
