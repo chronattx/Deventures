@@ -831,7 +831,7 @@ class Room:
 
         # Отображение стен (зелёные прямоугольники)
         for wall in self.walls:
-            pygame.draw.rect(screen, (0, 255, 0), camera.apply(wall))
+            pygame.draw.rect(screen, (227, 218, 100), camera.apply(wall))
 
         # Отображение зон переходов (красные прямоугольники)
         for transition in self.transitions:
@@ -857,9 +857,7 @@ class Room:
 
 class NPC:
     def __init__(self, x, y, image_path):
-        #self.rect = pygame.Rect(x, y, 200, 200)
         self.image = pygame.image.load(image_path).convert_alpha()
-        #self.image = pygame.transform.scale(self.image, (200, 200))
         self.rect = self.image.get_rect(topleft=(x,y))
         self.following = False
 
@@ -878,7 +876,7 @@ class DialogBox:
         self.button_font = pygame.font.Font(None, 28)
         self.yes_button = pygame.Rect(300, 500, 100, 40)
         self.no_button = pygame.Rect(450, 500, 100, 40)
-        self.dialog_rect = pygame.Rect(200, 400, 600, 200)
+        self.dialog_rect = pygame.Rect(100, 200, 880, 600)
         self.line_spacing = 10  # Отступ между строками
 
     def split_text(self):
@@ -909,7 +907,7 @@ class DialogBox:
 
             # Рисуем текст построчно
             lines = self.split_text()
-            y_offset = 420  # Начальная позиция для текста
+            y_offset = 230  # Начальная позиция для текста
             for line in lines:
                 text_surface = self.font.render(line, True, (0, 0, 0))
                 screen.blit(text_surface, (self.dialog_rect.x + 20, y_offset))

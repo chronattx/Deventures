@@ -200,7 +200,11 @@ def create_rooms():
         [[wave4_room1_totemole5, wave4_room1_totemole5_washitte], False],
         [[wave4_room1_totemole6, wave4_room1_totemole6_washitte], False],
     ]
-    room1_dialog = 'Привет игрок я хочу проверить умеешь ли ты ходить. Если готов начать проверку нажми да'
+    room1_dialog = ("Ха... Еще один. Добро пожаловать. Это место станет твоей могилой. Многие пытались выбраться,"
+                    " но никому не удалось... Никто даже не знает, возможно ли это в принципе. Ходят слухи, что если"
+                    " убить всех монстров, то, возможно, ты найдешь выход. Но, конечно же, меня это не касается…"
+                    " возможно. Готов? Хотя... зачем я спрашиваю? Выбора у тебя нет. ХАХАХАХАХАХАХАХАХА!"
+)
     rooms["room1"] = Room(room1_width, room1_height, "assets/rooms/room1.png", room1_walls,
                           room1_transitions, room1_objects, room1_npc, room1_enemies, room1_dialog)
 
@@ -222,9 +226,6 @@ def create_rooms():
     ]
     room2_objects = [
         GameObject('assets/decoration/Group4.png', 266, 253)
-    ]
-    room2_npc = [
-
     ]
 
     suura_idle_frames = load_animation_frames("assets/animate_enemy/Suura", 1, "Suura")  # 1 кадра для idle
@@ -312,7 +313,9 @@ def create_rooms():
     room2_npc = [
         NPC(200, 600, "assets/NPC_files/TheCG1.png")  # Добавляем NPC в центр комнаты
     ]
-    room2_dialog = 'Не подходи ближе, пока не поговорим! Нажми "Да" чтобы начать битву.'
+    room2_dialog = ("Ого... Ты справился. Неожиданно. Но боюсь, что дальше для тебя путь заказан. И да, я, как кот"
+                    " Шредингера, — везде и нигде одновременно. Полагаю, ты готов, Ха-ха… А точнее — утверждаю.")
+
     rooms["room2"] = Room(room2_width, room2_height, "assets/rooms/room2.png", room2_walls, room2_transitions, room2_objects, room2_npc, room2_enemies, room2_dialog)
 
 
@@ -428,7 +431,8 @@ def create_rooms():
         [[wave2_room3_losandro2, wave2_room3_losandro2_longsword], False],
         [[wave2_room3_losandro3, wave2_room3_losandro3_longsword], False]
     ]
-    room3_dialog = 'Ты поможешь мне защититься от врагов?(у вас нет выбора есть только видимость)'
+    room3_dialog = ("Я поражён... Впервые вижу, чтобы кто-то зашёл так далеко.Может, ты сможешь выбраться?.. "
+                    "Хотя нет.Нажимай уже «Да» или «Нет» — какая разница?")
     rooms["room3"] = Room(room3_width, room3_height, "assets/rooms/room3.png", room3_walls, room3_transitions, room3_objects, room3_npc, room3_enemies, room3_dialog)
 
     # Комната 4
