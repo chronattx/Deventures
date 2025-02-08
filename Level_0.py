@@ -461,7 +461,7 @@ def create_rooms():
     GameObject('assets/decoration/MiddleTablesHitbox.png', 570, 398),
     ]
     room4_npc = [
-
+        NPC(350, 40, "assets/NPC_files/TheCG1.png")
     ]
 
     wave1_room4_burryochaser = Enemy(pygame.Rect((900, 800, 0, 0)), "assets/animate_enemy/Stigoro/Stigoro1.png",
@@ -478,7 +478,7 @@ def create_rooms():
     room4_enemies = [
     [[wave1_room4_burryochaser, wave1_room4_burryochaser_surrodosword], False],
     ]
-    room4_dialog = ''
+    room4_dialog = "Невозможно, не верю, не может быть............ "
     rooms["room4"] = Room(room4_width, room4_height, "assets/rooms/room4.png", room4_walls, room4_transitions,
                           room4_objects, room4_npc, room4_enemies, room4_dialog)
 
@@ -525,7 +525,7 @@ def main():
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
-    current_room = "room1"
+    current_room = "room3"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     Objects.hero.get_targets_to_weapon(rooms["room1"])
@@ -562,8 +562,9 @@ def main():
     room3_cleared = False
 
     give_room4_equipment = False
+    room4_dialog_shown = False
 
-    room4_enemies_activated = True
+    room4_enemies_activated = False
     wave1_room4 = False
     room4_cleared = False
 
@@ -626,6 +627,14 @@ def main():
                         break
                     if current_room == "room3" and (result == "yes" or "no"):
                         room3_enemies_activated = True
+                        dialog_box.visible = False
+                    if current_room == "room4" and npc.check_click(mouse_pos, camera) and not room4_dialog_shown:
+                        dialog_box.visible = True
+                        dialog_box.text = rooms[current_room].dialog
+                        room4_dialog_shown = True
+                        break
+                    if current_room == "room4" and (result == "yes" or "no"):
+                        room4_enemies_activated = True
                         dialog_box.visible = False
 
 
@@ -699,8 +708,8 @@ def main():
                 wave2_room2 = False
         elif current_room == "room3":
             if not give_room3_equipment:
-                Objects.hero.health = 390
-                room3_hero_weapon = Weapon(100, 49,
+                Objects.hero.health = 3900000
+                room3_hero_weapon = Weapon(1000000, 49,
                                             "assets/weapons/BulberBata.png", 10)
                 Objects.hero.get_weapon(room3_hero_weapon)
                 give_room3_equipment = True
@@ -751,10 +760,6 @@ def main():
                     rooms[current_room].enemies[0][0][0].speed += 2
                 if Objects.hero.speed == 40:
                     rooms[current_room].enemies[0][0][0].health = -2
-
-
-
-
 
 
         # Движение игрока
