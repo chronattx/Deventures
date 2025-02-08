@@ -525,7 +525,7 @@ def main():
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
-    current_room = "room3"
+    current_room = "room1"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     Objects.hero.get_targets_to_weapon(rooms["room1"])
