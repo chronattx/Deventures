@@ -450,6 +450,7 @@ def main():
                 for npc in rooms[current_room].npc:
                     if npc.check_click(mouse_pos, camera):
                         dialog_box.visible = True
+                        dialog_box.text = rooms[current_room].text
                         break
                     result = dialog_box.handle_click(mouse_pos)
                     if current_room == "room1" and (result == 'yes' or result == 'no'):
@@ -541,10 +542,6 @@ def main():
         Objects.hero.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
         Objects.hero.attack(keys)
 
-        # Если НПС следует за игроком
-        for npcs in rooms[current_room].npc:
-            if npcs.following:
-                npcs.rect.center = Objects.hero.rect.center
 
         # Проверка переходов между комнатами
         if current_room == "room1" and room1_cleared:
@@ -556,6 +553,8 @@ def main():
                     Objects.hero.hitbox = (transition["player_start"][0], transition["player_start"][1],
                                            Objects.hero.hitbox[2], Objects.hero.hitbox[3])
                     camera = Camera(rooms[current_room].width, rooms[current_room].height)
+                    dialog_box.text = rooms[current_room].text
+                    dialog_box.visible = False
                     break
 
         # Обновление камеры
