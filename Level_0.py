@@ -493,7 +493,15 @@ def create_rooms():
     ]
     room5_transitions = [{"rect": pygame.Rect(0, 550, 10, 100), "target": "room4", "player_start": (1000, 500)}
                          ]
-    rooms["room5"] = Room(room5_width, room5_height, "assets/rooms/room5.png", room5_walls, room5_transitions)
+    room5_dialog = ("Ха...ха... я сошёл с ума, или ты и вправду дошёл? Ты наверно думаешь, что всё будет как раньше, ты"
+                    " нажмёшь да и появятся враги? Что ж, в этот раз я тебя удивлю!")
+    room5_npc = [
+        NPC(1000, 600, "assets/NPC_files/TheCG1.png")
+    ]
+    room5_objects = []
+    room5_enemies = []
+    rooms["room5"] = Room(room5_width, room5_height, "assets/rooms/room5.png", room5_walls, room5_transitions,
+                          room5_objects, room5_npc, room5_enemies, room5_dialog)
     return rooms
 
 
@@ -525,7 +533,7 @@ def main():
     Objects.hero.get_weapon(hero_weapon)
 
     rooms = create_rooms()
-    current_room = "room3"
+    current_room = "room5"
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
     Objects.hero.get_targets_to_weapon(rooms["room1"])
@@ -567,6 +575,9 @@ def main():
     room4_enemies_activated = False
     wave1_room4 = False
     room4_cleared = False
+
+    room5_dialog_shown = False
+    room5_enemies_activated = False
 
     while running:
         check_music_status()
@@ -635,6 +646,14 @@ def main():
                         break
                     if current_room == "room4" and (result == "yes" or "no"):
                         room4_enemies_activated = True
+                        dialog_box.visible = False
+                    if current_room == "room5" and npc.check_click(mouse_pos, camera) and not room5_dialog_shown:
+                        dialog_box.visible = True
+                        dialog_box.text = rooms[current_room].dialog
+                        room5_dialog_shown = True
+                        break
+                    if current_room == "room5" and (result == "yes" or "no"):
+                        room5_enemies_activated = True
                         dialog_box.visible = False
 
 
