@@ -116,8 +116,3 @@ def show_credits(screen):
         pygame.display.flip()
 
     return False
-
-pygame.init()
-screen = pygame.display.set_mode((1080, 600))
-play_credits_music()
-show_credits(screen)

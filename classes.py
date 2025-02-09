@@ -258,8 +258,11 @@ class BaseCharacter(BaseObject):
         if self != Objects.hero:
             self.weapon.targets = [[Objects.hero, False]]
 
-    def get_targets_to_weapon(self, current_room):
-        self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
+    def get_targets_to_weapon(self, current_room, special_target=None):
+        if special_target == None:
+            self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
+        else:
+            self.weapon.targets = [[special_target, False]]
 
     def attack(self, *args):
         if self.weapon is not None:
