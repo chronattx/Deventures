@@ -1272,14 +1272,13 @@ def main():
         clock.tick(60)
 
     if game_not_ended:
-        # Получение последних координаты игрока
         if Objects.hero is None:
             x, y = map(str, coords)  # Если игрок умер, придётся пройти комнату сначала
+            save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
             main()  # Перезапуск игры
         else:
             x, y, _, _ = map(str, Objects.hero.hitbox)  # В остальных случаях сохраняем последние координаты
-
-        save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
+            save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
     else:
         try:
             os.remove("progress.csv")  # Удаляем прогресс, если игра пройдена, чтобы можно было пройти её заново
