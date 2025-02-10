@@ -1,3 +1,5 @@
+import os
+
 from The_end import show_credits
 from classes import *
 from animate_func import load_animation_frames
@@ -797,7 +799,9 @@ def main():
     Objects.weapons = {
         "room1": Weapon(10, 93, "Weapons/SantaliderSword.png", 7),
         "room2": Weapon(150, 150, "assets/weapons/BlobsKneghtSwordMode2.png", 3),
-        "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10)
+        "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10),
+        "room4": Weapon(1, 49, "assets/animate_enemy/Burryo/Burryo1.png", 1),
+        "room5": Weapon(4, 144,"assets/weapons/LongGordonSword.png", 4)
     }
 
     progress = get_progress()
@@ -1058,8 +1062,7 @@ def main():
             elif (wave1_room4 and not rooms[current_room].enemies[0][1]):
                 wave1_room4 = False
                 Objects.hero.speed = 10
-                Objects.hero.get_weapon(Weapon(1, 49,
-                                           "assets/animate_enemy/Burryo/Burryo1.png", 1))
+                Objects.hero.get_weapon(Objects.weapons["room4"])
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
                 room4_cleared = True
             if wave1_room4:
@@ -1268,14 +1271,20 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-    # Получение последних координаты игрока
-    if Objects.hero is None:
-        x, y = map(str, coords)  # Если игрок умер, придётся пройти комнату сначала
-        main()  # Перезапуск игры
-    else:
-        x, y, _, _ = map(str, Objects.hero.hitbox)  # В остальных случаях сохраняем последние координаты
+    if game_not_ended:
+        # Получение последних координаты игрока
+        if Objects.hero is None:
+            x, y = map(str, coords)  # Если игрок умер, придётся пройти комнату сначала
+            main()  # Перезапуск игры
+        else:
+            x, y, _, _ = map(str, Objects.hero.hitbox)  # В остальных случаях сохраняем последние координаты
 
-    save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
+        save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
+    else:
+        try:
+            os.remove("progress.csv")  # Удаляем прогресс, если игра пройдена, чтобы можно было пройти её заново
+        except FileNotFoundError:
+            pass
 
 
 if __name__ == "__main__":

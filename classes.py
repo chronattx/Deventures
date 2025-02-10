@@ -607,7 +607,6 @@ class Enemy(BaseCharacter):
     def __init__(self, hitbox: pygame.Rect, image_file: str, speed: int, health: int, strategy: Callable, animations, animation_speed):
         super().__init__(hitbox, image_file, speed, health, animations, animation_speed)
         self.strategy = strategy
-        self.death = 0
         self.current_path = []
         self.search_radius = 300
         self.stuck_timer = 0
@@ -762,13 +761,12 @@ class Enemy(BaseCharacter):
     def update(self, screen: pygame.surface.Surface, camera, current_room,
                target_pos, walls_list, objects_list, delta_time):
         if self.health <= 0:
-            if not self.death:
-                self.die()
+            self.die(current_room)
         else:
             mode = self.strategy(self)
             mode(target_pos, walls_list, objects_list)
             self.update_animation(delta_time)
-        self.draw(screen, camera)
+            self.draw(screen, camera)
 
     def run_away(self, *args):
         pass
@@ -776,44 +774,18 @@ class Enemy(BaseCharacter):
     def wait(self, *args):
         pass
 
-    def die(self):
-        def new_size(src_width, src_height, target_width, target_height):
-            if src_width == target_width or src_height == target_height:
-                return target_width, target_height
-
-            src_aspect_ratio = src_width / src_height
-            target_aspect_ratio = target_width / target_height
-
-            if src_aspect_ratio == target_aspect_ratio:
-                return target_width, target_height
-
-            new_width = target_width
-            new_height = target_width / src_aspect_ratio
-
-            if new_height > target_height:
-                new_width = new_height * target_aspect_ratio
-                new_height = target_height
-            elif new_height < target_height:
-                new_width = target_width
-                new_height = new_width / src_aspect_ratio
-
-            return int(new_width), int(new_height)
-
-        self.image_file = "Bulber/Bulber.png"
-        image = pygame.image.load(self.image_file)
-        self.image = pygame.transform.scale(image, new_size(self.hitbox.width, self.hitbox.height, *image.get_size()))
-        self.weapon = None
-        self.death = 1
-
-    def update_animation(self, delta_time):
-        if not self.death:
-            super().update_animation(delta_time)
+    def die(self, current_room):
+        for i in range(len(current_room.enemies)):
+            enemy = current_room.enemies[i]
+            if enemy[0][0] == self:
+                current_room.enemies[i][1] = False
+                break
 
 
 class Objects:
     hero: Hero = None
     enemies: list[Enemy] = []
-    universal_weapons: dict[str, Weapon] = {}
+    weapons: dict[str, Weapon] = {}
 
 
 class Camera:
