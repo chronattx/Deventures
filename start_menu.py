@@ -1,8 +1,9 @@
 import pygame
-import time
 import pygame_light2d as pl2d
-from pygame_light2d import LightingEngine, PointLight
+import time
+
 from Level_0 import main
+from pygame_light2d import LightingEngine, PointLight
 
 
 # --- ИНИЦИАЛИЗАЦИЯ ---

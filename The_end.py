@@ -1,4 +1,3 @@
-from music import *
 import pygame
 
 

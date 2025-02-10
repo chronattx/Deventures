@@ -1,15 +1,15 @@
 import os
-
-from The_end import show_credits
-from classes import *
-from animate_func import load_animation_frames
-from music import *
-from Level0_minigame1 import minigame_main
 import pygame
-from strategy import example_strategy, carusel_strategy, stigoro_strategy, cycle_losandro_strategy, friendly_strategy, \
-    kamikadze_strategy
-from strategy import example_strategy, carusel_strategy, stigoro_strategy, cycle_losandro_strategy
-from backup import *
+
+from animate_func import load_animation_frames
+from backup import get_progress, save_progress
+from Level0_minigame1 import minigame_main
+from The_end import show_credits
+
+from classes import *
+from music import *
+from strategy import *
+
 
 # Размеры экрана
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600

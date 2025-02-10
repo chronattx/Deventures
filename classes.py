@@ -1,9 +1,10 @@
+import math
 import pygame
+
 from typing import Callable
 from BSoD import draw_bsod
-from music import *
 from data_types import Coord, Rect
-import math
+from music import *
 
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600

@@ -1,4 +1,4 @@
-from classes import *
+from classes import Enemy, Objects
 
 
 def example_strategy(enemy: Enemy):
