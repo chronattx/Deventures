@@ -258,8 +258,11 @@ class BaseCharacter(BaseObject):
         if self != Objects.hero:
             self.weapon.targets = [[Objects.hero, False]]
 
-    def get_targets_to_weapon(self, current_room):
-        self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
+    def get_targets_to_weapon(self, current_room, special_target=None):
+        if special_target == None:
+            self.weapon.targets = [[enemy_combo[0][0], False] for enemy_combo in current_room.enemies if enemy_combo[1]]
+        else:
+            self.weapon.targets = [[special_target, False]]
 
     def attack(self, *args):
         if self.weapon is not None:
@@ -344,12 +347,6 @@ class BaseCharacter(BaseObject):
 
     def get_damage(self, damage: int):
         self.health -= damage
-
-
-def die():
-    draw_bsod()
-    mega_stop()
-    Objects.hero = None
 
 
 class Hero(BaseCharacter):
@@ -549,8 +546,6 @@ class Hero(BaseCharacter):
                 self.weapon.show(self.weapon_coords(), screen, camera)
         else:
             screen.blit(self.image, self.rect)
-            # Отрисовка хитбокса
-            #pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
             # Отрисовка полоски здоровья
             health_bar_width = 50
             health_bar_height = 5
@@ -594,11 +589,18 @@ class Hero(BaseCharacter):
 
     def update(self, delta_time, screen, camera):
         if self.health <= 0:
-            die()
+            self.die()  # Вызываем метод die() экземпляра
         else:
             self.update_animation(delta_time)
             self.draw(screen, camera)
             self.draw_energy_bar(screen)
+
+    def die(self):
+        """Метод смерти персонажа"""
+        global is_music_playing
+        mega_stop()
+        draw_bsod()
+        Objects.hero = None
 
 
 class Enemy(BaseCharacter):
@@ -859,7 +861,7 @@ class Room:
 
         # Отображение стен (зелёные прямоугольники)
         for wall in self.walls:
-            pygame.draw.rect(screen, (0, 255, 0), camera.apply(wall))
+            pygame.draw.rect(screen, (227, 218, 100), camera.apply(wall))
 
         # Отображение зон переходов (красные прямоугольники)
         for transition in self.transitions:
@@ -885,9 +887,7 @@ class Room:
 
 class NPC:
     def __init__(self, x, y, image_path):
-        #self.rect = pygame.Rect(x, y, 200, 200)
         self.image = pygame.image.load(image_path).convert_alpha()
-        #self.image = pygame.transform.scale(self.image, (200, 200))
         self.rect = self.image.get_rect(topleft=(x,y))
         self.following = False
 
@@ -906,7 +906,7 @@ class DialogBox:
         self.button_font = pygame.font.Font(None, 28)
         self.yes_button = pygame.Rect(300, 500, 100, 40)
         self.no_button = pygame.Rect(450, 500, 100, 40)
-        self.dialog_rect = pygame.Rect(200, 400, 600, 200)
+        self.dialog_rect = pygame.Rect(100, 200, 880, 600)
         self.line_spacing = 10  # Отступ между строками
 
     def split_text(self):
@@ -937,7 +937,7 @@ class DialogBox:
 
             # Рисуем текст построчно
             lines = self.split_text()
-            y_offset = 420  # Начальная позиция для текста
+            y_offset = 230  # Начальная позиция для текста
             for line in lines:
                 text_surface = self.font.render(line, True, (0, 0, 0))
                 screen.blit(text_surface, (self.dialog_rect.x + 20, y_offset))
