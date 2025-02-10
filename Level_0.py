@@ -4,6 +4,7 @@ from music import *
 from Level0_minigame1 import minigame_main
 import pygame
 from strategy import example_strategy, carusel_strategy, stigoro_strategy, cycle_losandro_strategy
+from backup import *
 
 # Размеры экрана
 SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 600
@@ -222,9 +223,6 @@ def create_rooms():
     ]
     room2_objects = [
         GameObject('assets/decoration/Group4.png', 266, 253)
-    ]
-    room2_npc = [
-
     ]
 
     suura_idle_frames = load_animation_frames("assets/animate_enemy/Suura", 1, "Suura")  # 1 кадра для idle
@@ -480,20 +478,28 @@ def main():
         "run": run_frames,
     }
 
-    hero_hitbox = pygame.Rect(700, 450, 92, 75)
+    Objects.weapons = {
+        "room1": Weapon(10, 93, "Weapons/SantaliderSword.png", 7),
+        "room2": Weapon(150, 150, "assets/weapons/BlobsKneghtSwordMode2.png", 3),
+        "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10)
+    }
+
+    progress = get_progress()
+    coords = (700, 450)
+    x, y = map(int, [progress.get("x", coords[0]), progress.get("y", coords[1])])
+    hero_hitbox = pygame.Rect(x, y, 92, 75)
     hero_image = "assets/animate_hero/MairouMotion1.png"
     hero_speed = 10
     hero_health = 390
-    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health,
-                        animations, 0.03)
-    hero_weapon = Weapon(10, 93, "Weapons/SantaliderSword.png", 7)
-    Objects.hero.get_weapon(hero_weapon)
+    Objects.hero = Hero(hero_hitbox, hero_image, hero_speed, hero_health, animations, 0.03)
 
     rooms = create_rooms()
-    current_room = "room1"
+    current_room = progress.get("room", "room1")
     camera = Camera(rooms[current_room].width, rooms[current_room].height)
 
-    Objects.hero.get_targets_to_weapon(rooms["room1"])
+    hero_weapon = Objects.weapons.get(current_room, "room1")
+    Objects.hero.get_weapon(hero_weapon)
+    Objects.hero.get_targets_to_weapon(rooms[current_room])
 
     # Создаем НПС
     dialog_box = DialogBox(rooms[current_room].text)
@@ -633,8 +639,7 @@ def main():
             if room2_enemies_activated:
                 if not give_room2_equipment:
                     Objects.hero.health = 390
-                    room2_hero_weapon = Weapon(150, 150,
-                                                   "assets/weapons/BlobsKneghtSwordMode2.png", 3)
+                    room2_hero_weapon = Objects.weapons["room2"]
                     Objects.hero.get_weapon(room2_hero_weapon)
                     give_room2_equipment = True
 
@@ -644,7 +649,8 @@ def main():
                 rooms[current_room].enemies[1][1] = True
                 rooms[current_room].enemies[2][1] = True
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
-            elif wave1_room2 and not rooms[current_room].enemies[0][1] and not rooms[current_room].enemies[1][1] and not rooms[current_room].enemies[2][1]:
+            elif (wave1_room2 and not rooms[current_room].enemies[0][1] and not rooms[current_room].enemies[1][1] and
+                  not rooms[current_room].enemies[2][1]):
                 wave1_room2 = False
                 rooms[current_room].enemies[3][1] = True
                 rooms[current_room].enemies[4][1] = True
@@ -659,8 +665,7 @@ def main():
         elif current_room == "room3":
             if not give_room3_equipment:
                 Objects.hero.health = 390
-                room3_hero_weapon = Weapon(1, 49,
-                                            "assets/weapons/BulberBata.png", 10)
+                room3_hero_weapon = Objects.weapons["room3"]
                 Objects.hero.get_weapon(room3_hero_weapon)
                 give_room3_equipment = True
             if room3_enemies_activated:
@@ -688,17 +693,13 @@ def main():
                 wave2_room3 = False
                 room3_cleared = True
 
-
-
-
-
         # Движение игрока
         Objects.hero.move(keys, rooms[current_room].walls, rooms[current_room].objects, 0.15)
         Objects.hero.attack(keys)
 
-
         # Проверка переходов между комнатами
-        if (current_room == "room1" and room1_cleared) or (current_room == "room2" and room2_cleared) or (current_room == "room3" and room3_cleared):
+        if ((current_room == "room1" and room1_cleared) or (current_room == "room2" and room2_cleared) or
+                (current_room == "room3" and room3_cleared)):
             for transition in rooms[current_room].transitions:
                 if transition["rect"].colliderect(Objects.hero.rect):
                     current_room = transition["target"]
@@ -709,6 +710,11 @@ def main():
                     camera = Camera(rooms[current_room].width, rooms[current_room].height)
                     dialog_box.text = rooms[current_room].text
                     dialog_box.visible = False
+
+                    # Сохраняем прогресс при переходе между комнатами
+                    x, y, _, _ = map(str, Objects.hero.hitbox)  # Сохраняем последние координаты
+                    coords = (int(x), int(y))
+                    save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
                     break
 
         # Обновление камеры
@@ -749,9 +755,17 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
+    # Получение последних координаты игрока
+    if Objects.hero is None:
+        x, y = map(str, coords)  # Если игрок умер, придётся пройти комнату сначала
+        main()  # Перезапуск игры
+    else:
+        x, y, _, _ = map(str, Objects.hero.hitbox)  # В остальных случаях сохраняем последние координаты
+
+    save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
+
 
 if __name__ == "__main__":
     pygame.init()
     main()
     pygame.quit()
-
