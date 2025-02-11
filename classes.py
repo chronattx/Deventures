@@ -52,7 +52,7 @@ class GameObject:
 
 
 class Weapon:
-    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None, energy=1):
+    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, energy=1):
         """
         Инициализация оружия.
         :param damage: Урон оружия.
@@ -64,7 +64,6 @@ class Weapon:
         self.damage = damage
         self.length = length
         self.image_file = image_file
-        self.character = character
         self.energy = energy
         self.angle = 0  # Текущий угол наклона оружия
         self.rotation = False  # Флаг вращения
@@ -369,16 +368,16 @@ class Hero(BaseCharacter):
 
         # Энергетическая система
         self.max_energy = 25
-        self.dash_energy = 2
+        self.dash_energy = 4
         self.current_energy = self.max_energy
         self.energy_regen_timer = 0  # Таймер восстановления энергии
-        self.energy_regen_interval = 3000  # 3 секунды в миллисекундах
+        self.energy_regen_interval = 160  # 3 секунды в миллисекундах
 
         self.dash_history = []  # Временные метки последних рывков
         self.dash_cooldown = 0  # Оставшееся время перезарядки
-        self.max_dashes = 2  # Максимум рывков за период
+        self.max_dashes = 10  # Максимум рывков за период
         self.dash_window = 3000  # 3 секунды в миллисекундах
-        self.cooldown_duration = 10000  # 10 секунд
+        self.cooldown_duration = 5000  # 10 секунд
 
     def attack(self, keys):
         if self.weapon is not None:
@@ -476,7 +475,7 @@ class Hero(BaseCharacter):
 
     def dash(self, walls, objects):
         """Рывок с проверкой ограничений"""
-        if self.dash_cooldown > 0:
+        if self.dash_cooldown > 0 or (self.last_dx == 0 and self.last_dy == 0):
             return  # Рывок на перезарядке
         elif not self.use_energy(self.dash_energy):
             return
@@ -499,8 +498,8 @@ class Hero(BaseCharacter):
 
         # Рассчитываем вектор направления
         length = (self.last_dx ** 2 + self.last_dy ** 2) ** 0.5
-        dir_x = self.last_dx / length
-        dir_y = self.last_dy / length
+        dir_x = self.last_dx / length * 3
+        dir_y = self.last_dy / length * 3
 
         # Вычисляем смещение
         dash_x = int(dir_x * 100)

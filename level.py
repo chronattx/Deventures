@@ -22,12 +22,12 @@ def create_rooms():
     # Комната 1
     room1_width, room1_height = 1600, 800
     room1_walls = [
-        pygame.Rect(0, 0, 1600, 10),  # Верхняя стена
-        pygame.Rect(0, 790, 1600, 10),  # Нижняя стена
-        pygame.Rect(0, 0, 10, 350),  # Левая верхняя стена
-        pygame.Rect(-10, 0, 10, 800),  # Особая задняя левая стена (by ZuttoZutto)
-        pygame.Rect(0, 450, 10, 350),  # Левая нижняя стена
-        pygame.Rect(1590, 0, 10, 800)  # Правая стена
+        pygame.Rect(-1000, -1000, 3600, 1010),  # Верхняя стена
+        pygame.Rect(-1000, 790, 3600, 1010),  # Нижняя стена
+        pygame.Rect(-1000, 0, 1010, 350),  # Левая верхняя стена
+        pygame.Rect(-1010, 0, 1010, 800),  # Особая задняя левая стена (by ZuttoZutto)
+        pygame.Rect(-1000, 450, 1010, 350),  # Левая нижняя стена
+        pygame.Rect(1590, 0, 1010, 800)  # Правая стена
     ]
     room1_transitions = [
         {"rect": pygame.Rect(0, 350, 10, 100), "target": "room2", "player_start": (600, 400)}
@@ -217,14 +217,14 @@ def create_rooms():
     # Комната 2
     room2_width, room2_height = 800, 800
     room2_walls = [
-        pygame.Rect(0, 0, 800, 10),  # Верхняя стена
-        pygame.Rect(0, 790, 350, 10), # Нижняя стена вверх
-        pygame.Rect(0, 800, 950, 10),
-        pygame.Rect(450, 790, 350, 10), # Нижняя стена низ
-        pygame.Rect(0, 0, 10, 800),  # Левая стена
-        pygame.Rect(790, 0, 10, 350),  # Правая верхняя стена
-        pygame.Rect(800, 0, 10, 1000),
-        pygame.Rect(790, 450, 10, 350),  # Правая нижняя стена
+        pygame.Rect(-1000, -1000, 2800, 1010),  # Верхняя стена
+        pygame.Rect(-1000, 790, 1350, 1010), # Нижняя стена вверх
+        pygame.Rect(-1000, 800, 2950, 1010),
+        pygame.Rect(450, 790, 1010, 1010), # Нижняя стена низ
+        pygame.Rect(-1000, 0, 1010, 800),  # Левая стена
+        pygame.Rect(790, 0, 1010, 350),  # Правая верхняя стена
+        pygame.Rect(800, 0, 1010, 1000),
+        pygame.Rect(790, 450, 1010, 1350),  # Правая нижняя стена
     ]
     room2_transitions = [
         {"rect": pygame.Rect(790, 350, 10, 100), "target": "room1", "player_start": (50, 400)},  # Вход из комнаты 1
@@ -328,14 +328,14 @@ def create_rooms():
     # Комната 3
     room3_width, room3_height = 1000, 1000
     room3_walls = [
-        pygame.Rect(0, 0, 450, 10),  # Верхняя стена вверх
-        pygame.Rect(0, -10, 1450, 10),  # Верхняя стена вверх
-        pygame.Rect(550, 0, 450, 10),  # Верхняя стена вверх
-        pygame.Rect(0, 990, 450, 10),  # Нижняя стена
-        pygame.Rect(0, 1000, 1450, 10),  # Нижняя стена
+        pygame.Rect(-1000, -1000, 1450, 1010),  # Верхняя стена вверх
+        pygame.Rect(-1000, -1010, 3000, 1010),  # Верхняя стена вверх
+        pygame.Rect(550, -1000, 1450, 1010),  # Верхняя стена вверх
+        pygame.Rect(-1000, 990, 1450, 1010),  # Нижняя стена
+        pygame.Rect(0, 1000, 3450, 1010),  # Нижняя стена
         pygame.Rect(550, 990, 450, 10),  # Нижняя стена
-        pygame.Rect(0, 0, 10, 1000),  # Левая стена
-        pygame.Rect(990, 0, 10, 1000),  # Правая стена
+        pygame.Rect(-1000, 0, 1010, 1000),  # Левая стена
+        pygame.Rect(990, 0, 1010, 1000),  # Правая стена
     ]
     room3_transitions = [
         {"rect": pygame.Rect(450, 0, 100, 10), "target": "room2", "player_start": (400, 700)}, # Вход сверху
@@ -444,13 +444,13 @@ def create_rooms():
     # Комната 4
     room4_width, room4_height = 1100, 1000
     room4_walls = [
-        pygame.Rect(0, 0, 500, 10), # Верхняя стена вверх
-        pygame.Rect(0, -10, 1500, 10),
+        pygame.Rect(-1000, -1000, 1500, 1010), # Верхняя стена вверх
+        pygame.Rect(-1000, -1010, 3500, 1010),
         pygame.Rect(600, 0, 500, 10), # Верхняя стена низ
-        pygame.Rect(0, 990, 1100, 10), # Нижняя стена
-        pygame.Rect(0, 0, 10, 1000),
+        pygame.Rect(-1000, 990, 3100, 1010), # Нижняя стена
+        pygame.Rect(-1000, 0, 1010, 1000),
         pygame.Rect(1090, 0, 10, 450),
-        pygame.Rect(1100, 0, 10, 1450),
+        pygame.Rect(1100, 0, 1010, 1450),
         pygame.Rect(1090, 550, 10, 500)
     ]
     room4_transitions = [{"rect": pygame.Rect(1090, 450, 10, 100), "target": "room5", "player_start": (30, 600)},
@@ -491,12 +491,13 @@ def create_rooms():
     # Комната 5
     room5_width, room5_height = 2000, 1200
     room5_walls = [
-        pygame.Rect(0, 0, 2000, 10),  # Верхняя стена вверх
-        pygame.Rect(-10, 0, 10, 10000),  # Верхняя стена вверх
-        pygame.Rect(0, 1190, 2000, 10),  # Нижняя стена
-        pygame.Rect(0, 0, 10, 550),
-        pygame.Rect(0, 650, 10, 550),
-        pygame.Rect(1990, 0, 10, 1200),
+        pygame.Rect(-1000, -1000, 4000, 1010),  # Верхняя стена вверх
+        pygame.Rect(-1010, -1000, 4010, 1000),  # Верхняя стена вверх
+        pygame.Rect(-1000, 1190, 4000, 1010),  # Нижняя стена
+        pygame.Rect(-1000, 0, 1010, 550),
+        pygame.Rect(-1010, 0, 1010, 1200),
+        pygame.Rect(-1000, 650, 1010, 550),
+        pygame.Rect(1990, 0, 1010, 1200),
     ]
     room5_transitions = [{"rect": pygame.Rect(0, 550, 10, 100), "target": "room4", "player_start": (1000, 500)}
                          ]
@@ -570,70 +571,70 @@ def create_rooms():
 
     wave1_room5_blinostolb1 = Enemy(pygame.Rect((1084, 1056, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=3, health=10,
+                                    speed=3, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb1_stolbsword = Weapon(1, 45,
                                            "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb2 = Enemy(pygame.Rect((1340, 1056, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb2_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb3 = Enemy(pygame.Rect((1624, 1056, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb3_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb4 = Enemy(pygame.Rect((1064, 103, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb4_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb5 = Enemy(pygame.Rect((1323, 103, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb5_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb6 = Enemy(pygame.Rect((1506, 103, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb6_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb7 = Enemy(pygame.Rect((1862, 238, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb7_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb8 = Enemy(pygame.Rect((1862, 470, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb8_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb9 = Enemy(pygame.Rect((1862, 646, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb9_stolbsword = Weapon(1, 45,
                                                 "assets/weapons/StolbSword.png", 2)
     wave1_room5_blinostolb10 = Enemy(pygame.Rect((1862, 900, 0, 0)),
                                     "assets/animate_enemy/Blinostolb/Blinostolb1.png",
-                                    speed=2, health=10,
+                                    speed=2, health=15,
                                     strategy=friendly_strategy,
                                     animations=blinostolb_animations, animation_speed=0.04)
     wave1_room5_blinostolb10_stolbsword = Weapon(1, 45,
@@ -797,11 +798,11 @@ def main():
     }
 
     Objects.weapons = {
-        "room1": Weapon(10, 93, "Weapons/SantaliderSword.png", 7),
-        "room2": Weapon(150, 150, "assets/weapons/BlobsKneghtSwordMode2.png", 3),
-        "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10),
-        "room4": Weapon(1, 49, "assets/animate_enemy/Burryo/Burryo1.png", 1),
-        "room5": Weapon(4, 144,"assets/weapons/LongGordonSword.png", 4)
+        "room1": Weapon(1, 93, "Weapons/SantaliderSword.png", 7, 2),
+        "room2": Weapon(2, 150, "assets/weapons/BlobsKneghtSwordMode2.png", 3, 10),
+        "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10, 1),
+        "room4": Weapon(0, 49, "assets/animate_enemy/Burryo/Burryo1.png", 1),
+        "room5": Weapon(10, 144,"assets/weapons/LongGordonSword.png", 4, 14)
     }
 
     progress = get_progress()
@@ -953,6 +954,8 @@ def main():
 
         if current_room == "room1":
             if wave1_room1 and not rooms[current_room].enemies[0][1]:
+                room1_hero_weapon = Objects.weapons["room1"]
+                Objects.hero.get_weapon(room1_hero_weapon)
                 wave2_room1 = True
                 rooms[current_room].enemies[1][1] = True
                 rooms[current_room].enemies[2][1] = True
@@ -1077,8 +1080,7 @@ def main():
                 Objects.hero.rect = pygame.Rect(100, 600, Objects.hero.rect[2], Objects.hero.rect[3])
                 Objects.hero.hitbox = pygame.Rect(100, 600, Objects.hero.hitbox[2], Objects.hero.hitbox[3])
                 Objects.hero.health = 390
-                Objects.hero.weapon = None
-                room5_phase1_hero_weapon = Weapon(4, 144,"assets/weapons/LongGordonSword.png", 4)
+                room5_phase1_hero_weapon = Objects.weapons["room5"]
                 Objects.hero.get_weapon(room5_phase1_hero_weapon)
                 rooms[current_room].enemies[0][1] = True
                 rooms[current_room].enemies[1][1] = True
@@ -1130,8 +1132,8 @@ def main():
                 Objects.hero.health = 390
                 Objects.hero.rect = pygame.Rect(100, 600, Objects.hero.rect[2], Objects.hero.rect[3])
                 Objects.hero.hitbox = pygame.Rect(100, 600, Objects.hero.hitbox[2], Objects.hero.hitbox[3])
-                hero_weapon.damage = 2
-                Objects.hero.get_weapon(hero_weapon)
+                room5_phase2_hero_weapon = Objects.weapons["room1"]
+                Objects.hero.get_weapon(room5_phase2_hero_weapon)
                 rooms[current_room].enemies[11][1] = True
                 rooms[current_room].enemies[12][1] = True
                 rooms[current_room].enemies[13][1] = True
@@ -1152,7 +1154,6 @@ def main():
                 wave3_room5 = True
                 Objects.hero.rect = pygame.Rect(100, 600, Objects.hero.rect[2], Objects.hero.rect[3])
                 Objects.hero.hitbox = pygame.Rect(100, 600, Objects.hero.hitbox[2], Objects.hero.hitbox[3])
-                Objects.hero.weapon.damage = 1
                 rooms[current_room].enemies[19][1] = True
                 Objects.hero.health = 390
                 Objects.hero.get_targets_to_weapon(rooms[current_room])
