@@ -47,12 +47,24 @@ def stop_music():
         is_music_playing = False  # Отмечаем, что музыка не играет
 
 
-def mega_stop():
-    """Полная остановка музыки со сбросом состояния"""
+def win_stop(temp_track=None):
+    """Останавливает музыку и может воспроизвести временный трек"""
     global is_music_playing, music_position
+
+    # Останавливаем текущую музыку
     pygame.mixer.music.stop()
     is_music_playing = False
-    music_position = 0  # Сбрасываем позицию
+    music_position = 0
+
+    # Если передан временный трек
+    if temp_track:
+        try:
+            pygame.mixer.music.load(temp_track)
+            pygame.mixer.music.play()
+            # Устанавливаем таймер на 3 секунды (3000 мс)
+            pygame.time.set_timer(pygame.USEREVENT + 1, 3001, loops=1)
+        except Exception as e:
+            print(f"Ошибка загрузки временного трека: {e}")
 
 
 def next_track():

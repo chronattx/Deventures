@@ -1,6 +1,5 @@
 import math
 import pygame
-
 from typing import Callable
 from BSoD import draw_bsod
 from data_types import Coord, Rect
@@ -606,7 +605,7 @@ class Hero(BaseCharacter):
     def die(self):
         """Метод смерти персонажа"""
         global is_music_playing
-        mega_stop()
+        win_stop("assets/music_traks/green_screen_windows_xp.mp3")
         draw_bsod()
         Objects.hero = None
 
