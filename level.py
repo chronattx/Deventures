@@ -798,7 +798,7 @@ def main():
     }
 
     Objects.weapons = {
-        "room1": Weapon(1, 93, "Weapons/SantaliderSword.png", 7, 2),
+        "room1": Weapon(1, 93, "assets/weapons/SantaliderSword.png", 7, 2),
         "room2": Weapon(2, 150, "assets/weapons/BlobsKneghtSwordMode2.png", 3, 10),
         "room3": Weapon(1, 49, "assets/weapons/BulberBata.png", 10, 1),
         "room4": Weapon(0, 49, "assets/animate_enemy/Burryo/Burryo1.png", 1),
@@ -1189,7 +1189,7 @@ def main():
                     rooms[current_room].enemies[19][0][0].speed = 8
             if room5_cleared == True:
                 room5_cleared = False
-                play_credits_music()
+                play_credits_music("assets/music_traks/End_song.mp3")
                 show_credits(screen)
                 game_not_ended = False
 
