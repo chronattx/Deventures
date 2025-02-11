@@ -1,5 +1,4 @@
 import os
-import pygame
 
 from animate_func import load_animation_frames
 from backup import get_progress, save_progress
