@@ -52,7 +52,7 @@ class GameObject:
 
 
 class Weapon:
-    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None):
+    def __init__(self, damage: int, length: int, image_file: str, angle_per_frame: int, character=None, energy=1):
         """
         Инициализация оружия.
         :param damage: Урон оружия.
@@ -65,6 +65,7 @@ class Weapon:
         self.length = length
         self.image_file = image_file
         self.character = character
+        self.energy = energy
         self.angle = 0  # Текущий угол наклона оружия
         self.rotation = False  # Флаг вращения
         self.direction = "right"  # Направление атаки
@@ -368,6 +369,7 @@ class Hero(BaseCharacter):
 
         # Энергетическая система
         self.max_energy = 25
+        self.dash_energy = 2
         self.current_energy = self.max_energy
         self.energy_regen_timer = 0  # Таймер восстановления энергии
         self.energy_regen_interval = 3000  # 3 секунды в миллисекундах
@@ -394,7 +396,8 @@ class Hero(BaseCharacter):
                     attack = False
 
                 if attack:
-                    self.weapon.start_rotation()
+                    if self.use_energy(self.weapon.energy):
+                        self.weapon.start_rotation()
             else:
                 self.weapon.update(self.weapon_coords())
 
@@ -475,6 +478,8 @@ class Hero(BaseCharacter):
         """Рывок с проверкой ограничений"""
         if self.dash_cooldown > 0:
             return  # Рывок на перезарядке
+        elif not self.use_energy(self.dash_energy):
+            return
 
         current_time = pygame.time.get_ticks()
 
@@ -511,6 +516,8 @@ class Hero(BaseCharacter):
         # Проверяем коллизии
         if self.check_collisions(walls, objects):
             self.rect.topleft = original  # Откат при столкновении
+
+        self.hitbox.x, self.hitbox.y = self.rect.topleft
 
     def update_cooldowns(self, delta_time):
         """Обновление таймеров перезарядки"""

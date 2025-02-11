@@ -9,7 +9,7 @@ def save_progress(progress: dict[str, str]):
         with open("progress.csv", "r") as file:
             first = file.readline().strip()
 
-            if first == "":
+            if first != ",".join(title):
                 raise FileNotFoundError
     except FileNotFoundError:
         with open("progress.csv", "w", newline="") as file:

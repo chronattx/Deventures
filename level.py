@@ -3,7 +3,7 @@ import pygame
 
 from animate_func import load_animation_frames
 from backup import get_progress, save_progress
-from Level0_minigame1 import minigame_main
+from minigame import minigame_main
 from The_end import show_credits
 
 from classes import *
@@ -1277,7 +1277,7 @@ def main():
             save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
             main()  # Перезапуск игры
         else:
-            x, y, _, _ = map(str, Objects.hero.hitbox)  # В остальных случаях сохраняем последние координаты
+            x, y = map(str, Objects.hero.hitbox.topleft)  # В остальных случаях сохраняем последние координаты
             save_progress({"room": current_room, "x": x, "y": y})  # Сохраняем прогресс
     else:
         try:

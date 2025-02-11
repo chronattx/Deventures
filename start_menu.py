@@ -2,7 +2,7 @@ import pygame
 import pygame_light2d as pl2d
 import time
 
-from Level_0 import main
+from level import main
 from pygame_light2d import LightingEngine, PointLight
 
 
