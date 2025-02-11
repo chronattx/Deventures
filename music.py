@@ -9,7 +9,6 @@ MUSIC_TRACKS = [
     "assets/music_traks/Track4.mp3"
 ]
 
-CREDITS_MUSIC = "assets/music_traks/End_song.mp3"
 
 # Индекс текущего трека
 current_track_index = 0
@@ -111,7 +110,7 @@ def check_music_status():
         play_music()  # Запускаем новый трек
 
 
-def play_credits_music():
+def play_credits_music(pers_music):
     """
     Останавливает текущую музыку (если она играет) и запускает музыку для титров.
     """
@@ -122,7 +121,7 @@ def play_credits_music():
         stop_music()
 
     # Загружаем и запускаем музыку для титров
-    pygame.mixer.music.load(CREDITS_MUSIC)
+    pygame.mixer.music.load(pers_music)
     pygame.mixer.music.play(-1)  # -1 означает бесконечное воспроизведение
     is_music_playing = True
     music_position = 0  # Сбрасываем позицию воспроизведения

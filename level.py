@@ -890,8 +890,8 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                # Рывок по Alt
-                if event.key in (pygame.K_LALT, pygame.K_RALT):
+                # Рывок по Alt или Shift
+                if event.key in (pygame.K_LALT, pygame.K_RALT, pygame.K_LSHIFT, pygame.K_RSHIFT):
                     # Проверяем возможность рывка
                     if Objects.hero.dash_cooldown <= 0:
                         Objects.hero.dash(rooms[current_room].walls, rooms[current_room].objects)

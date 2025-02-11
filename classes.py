@@ -503,8 +503,8 @@ class Hero(BaseCharacter):
         dir_y = self.last_dy / length
 
         # Вычисляем смещение
-        dash_x = int(dir_x * 50)
-        dash_y = int(dir_y * 25)
+        dash_x = int(dir_x * 100)
+        dash_y = int(dir_y * 100)
 
         # Сохраняем исходную позицию
         original = self.rect.topleft
